@@ -1,63 +1,65 @@
-# generator-node-module-es6
+# generator-node-module-typescript
 
-[![Beerpay](https://beerpay.io/codejamninja/generator-node-module-es6/badge.svg?style=beer-square)](https://beerpay.io/codejamninja/generator-node-module-es6)
-[![Beerpay](https://beerpay.io/codejamninja/generator-node-module-es6/make-wish.svg?style=flat-square)](https://beerpay.io/codejamninja/generator-node-module-es6?focus=wish)
-[![GitHub stars](https://img.shields.io/github/stars/codejamninja/generator-node-module-es6.svg?style=social&label=Stars)](https://github.com/codejamninja/generator-node-module-es6)
+[![GitHub stars](https://img.shields.io/github/stars/codejamninja/generator-node-module-typescript.svg?style=social&label=Stars)](https://github.com/codejamninja/generator-node-module-typescript)
 
-> yeoman generator for es6 node modules
+> yeoman generator for typescript node modules
 
 Please ★ this repo if you found it useful ★ ★ ★
 
 
 ## Features
 
-* ES6
-* NPM best practices
+* supports babel
+* supports typescript
+* publish to npm
+* prettier
+* eslint
 
 
 ## Installation
 
 ```sh
-npm install -g yo generator-node-module-es6
+npm install -g yo generator-node-module-typescript
 ```
 
 
 ## Dependencies
 
 * [NodeJS](https://nodejs.org)
-* [Yeoman](http://yeoman.io)
 
 
 ## Usage
 
-[Contribute](https://github.com/codejamninja/generator-node-module-es6/blob/master/CONTRIBUTING.md) usage docs
+```sh
+yo node-module-typescript
+```
 
 
 ## Support
 
-Submit an [issue](https://github.com/codejamninja/generator-node-module-es6/issues/new)
+Submit an [issue](https://github.com/codejamninja/generator-node-module-typescript/issues/new)
 
 
 ## Screenshots
 
-[Contribute](https://github.com/codejamninja/generator-node-module-es6/blob/master/CONTRIBUTING.md) a screenshot
+[Contribute](https://github.com/codejamninja/generator-node-module-typescript/blob/master/CONTRIBUTING.md) a screenshot
 
 
 ## Contributing
 
-Review the [guidelines for contributing](https://github.com/codejamninja/generator-node-module-es6/blob/master/CONTRIBUTING.md)
+Review the [guidelines for contributing](https://github.com/codejamninja/generator-node-module-typescript/blob/master/CONTRIBUTING.md)
 
 
 ## License
 
-[MIT License](https://github.com/codejamninja/generator-node-module-es6/blob/master/LICENSE)
+[MIT License](https://github.com/codejamninja/generator-node-module-typescript/blob/master/LICENSE)
 
-[Jam Risser](https://codejam.ninja) © 2018
+[Jam Risser](https://codejam.ninja) © 2019
 
 
 ## Changelog
 
-Review the [changelog](https://github.com/codejamninja/generator-node-module-es6/blob/master/CHANGELOG.md)
+Review the [changelog](https://github.com/codejamninja/generator-node-module-typescript/blob/master/CHANGELOG.md)
 
 
 ## Credits
@@ -65,11 +67,11 @@ Review the [changelog](https://github.com/codejamninja/generator-node-module-es6
 * [Jam Risser](https://codejam.ninja) - Author
 
 
-## Support on Beerpay (actually, I drink coffee)
+## Support on Liberapay
 
 A ridiculous amount of coffee ☕ ☕ ☕ was consumed in the process of building this project.
 
-[Add some fuel](https://beerpay.io/codejamninja/generator-node-module-es6) if you'd like to keep me going!
+[Add some fuel](https://liberapay.com/codejamninja/donate) if you'd like to keep me going!
 
-[![Beerpay](https://beerpay.io/codejamninja/generator-node-module-es6/badge.svg?style=beer-square)](https://beerpay.io/codejamninja/generator-node-module-es6)
-[![Beerpay](https://beerpay.io/codejamninja/generator-node-module-es6/make-wish.svg?style=flat-square)](https://beerpay.io/codejamninja/generator-node-module-es6?focus=wish)
+[![Liberapay receiving](https://img.shields.io/liberapay/receives/codejamninja.svg?style=flat-square)](https://liberapay.com/codejamninja/donate)
+[![Liberapay patrons](https://img.shields.io/liberapay/patrons/codejamninja.svg?style=flat-square)](https://liberapay.com/codejamninja/donate)
