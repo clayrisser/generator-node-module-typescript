@@ -1,0 +1,68 @@
+{
+  "name": "<%= name %>",
+  "version": "<%= version %>",
+  "description": "<%= description %>",<% if (keywords && keywords.length) { %>
+  "keywords": [<% for (var i = 0; i < keywords.length; i++) { %>
+    "<%= keywords[i] %>"<%= i < keywords.length - 1 ? ',' : '' %><% } %>
+  ],<% } %>
+  "homepage": "<%= homepage %>",
+  "bugs": {
+    "url": "<%= repository %>/issues",
+    "email": "<%= authorEmail %>"
+  },
+  "license": "<%= license %>",
+  "author": {
+    "name": "<%= authorName %>",
+    "email": "<%= authorEmail %>",
+    "url": "<%= authorUrl %>"
+  },
+  "files": [
+    "lib"<% if (bin) { %>,
+    "bin"<% } %>
+  ],
+  "main": "lib/index.js",<% if (bin) { %>
+  "bin": {
+    "<%= name %>": "bin/<%= name %>.js"
+  },<% } %>
+  "repository": {
+    "type" : "git",
+    "url" : "<%= repository %>"
+  },
+  "scripts": {
+    "build": "npm run build:types && npm run build:js",
+    "build:js": "babel src --out-dir lib --extensions \".ts,.tsx\" --source-maps inline",
+    "build:types": "tsc --emitDeclarationOnly",
+    "clean": "git clean -fXd -e \\!node_modules -e \\!node_modules/**/*",
+    "format": "prettier --write ./src/*.ts ./src/**/*.ts",
+    "lint": "npm run format && eslint ./src/**/*.ts",
+    "lint:fix": "npm run format && eslint --fix ./**/*.ts",
+    "prepublish": "npm run build",
+    "start": "ts-node src",
+    "type-check": "tsc --noEmit",
+    "type-check:watch": "npm run type-check -- --watch"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "@babel/cli": "^7.2.3",
+    "@babel/core": "^7.3.4",
+    "@babel/plugin-proposal-class-properties": "^7.3.4",
+    "@babel/plugin-proposal-object-rest-spread": "^7.3.4",
+    "@babel/preset-env": "^7.3.4",
+    "@babel/preset-typescript": "^7.3.3",
+    "@typescript-eslint/eslint-plugin": "^1.4.2",
+    "@typescript-eslint/parser": "^1.4.2",
+    "eslint": "^5.15.0",
+    "eslint-config-airbnb-typescript": "^1.1.0",
+    "eslint-config-jam": "^0.2.5",
+    "eslint-plugin-jsx-a11y": "^6.2.1",
+    "eslint-plugin-react": "^7.12.4",
+    "ts-node": "^8.0.3",
+    "typescript": "^3.3.3333"
+  },
+  "engines" : {
+    "node" : ">=6.0.0"
+  },
+  "eslintIgnore": [
+    "lib"
+  ]
+}

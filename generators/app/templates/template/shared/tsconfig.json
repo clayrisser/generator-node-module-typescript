@@ -1,0 +1,12 @@
+{
+  "compilerOptions": {
+    "allowSyntheticDefaultImports": true,
+    "declaration": true,
+    "esModuleInterop": true,
+    "module": "commonjs",
+    "outDir": "lib",
+    "resolveJsonModule": true,
+    "strict": true,
+    "target": "esnext"
+  }
+}
