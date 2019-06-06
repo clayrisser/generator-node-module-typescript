@@ -1,7 +1,3 @@
 {
-  "extends": ["jam/typescript"],
-  "rules": {
-    "import/named": "off",
-    "no-unused-vars": "off"
-  }
+  "extends": ["jam/typescript/base"]
 }

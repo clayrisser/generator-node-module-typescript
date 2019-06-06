@@ -1,5 +1,9 @@
 export default class Hello {
-  constructor(public world: string = 'texas') {}
+  public world: string;
+
+  constructor() {
+    this.world = 'texas';
+  }
 }
 
 const logger = console;

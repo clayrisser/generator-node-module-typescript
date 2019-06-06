@@ -1,6 +1,6 @@
 {
   "name": "generator-node-module-typescript",
-  "version": "0.0.2",
+  "version": "0.1.0",
   "description": "yeoman generator for typescript node modules",
   "keywords": [
     "yeoman-generator",
@@ -41,7 +41,7 @@
     "babel-eslint": "^10.0.1",
     "babel-preset-jam": "^0.1.0",
     "eslint": "^5.15.3",
-    "eslint-config-jam": "^0.1.6",
+    "eslint-config-jam": "^0.2.9",
     "yo": "^2.0.5"
   },
   "author": {
