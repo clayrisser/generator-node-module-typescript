@@ -50,7 +50,7 @@
     "@types/jest": "^24.0.13",
     "@typescript-eslint/eslint-plugin": "^1.9.0",
     "@typescript-eslint/parser": "^1.9.0",
-    "babel-preset-jam": "^0.2.0",
+    "babel-preset-jam": "^0.4.1",
     "eslint": "^5.16.0",
     "eslint-config-airbnb-typescript": "^4.0.0",
     "eslint-config-jam": "^0.2.12",
