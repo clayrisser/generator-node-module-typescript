@@ -42,4 +42,13 @@ export default async function writing(yo) {
     yo.templatePath('template/shared/tsconfig.json'),
     yo.destinationPath('tsconfig.json')
   );
+  yo.fs.copyTpl(
+    yo.templatePath('template/shared/tests'),
+    yo.destinationPath('tests'),
+    yo.context
+  );
+  yo.fs.copy(
+    yo.templatePath('template/shared/tests_eslintrc'),
+    yo.destinationPath('tests/.eslintrc')
+  );
 }
