@@ -6,15 +6,13 @@
 
 Please ★ this repo if you found it useful ★ ★ ★
 
-
 ## Features
 
-* supports babel
-* supports typescript
-* publish to npm
-* prettier
-* eslint
-
+- supports babel
+- supports typescript
+- publish to npm
+- prettier
+- eslint
 
 ## Installation
 
@@ -22,11 +20,9 @@ Please ★ this repo if you found it useful ★ ★ ★
 npm install -g yo generator-node-module-typescript
 ```
 
-
 ## Dependencies
 
-* [NodeJS](https://nodejs.org)
-
+- [NodeJS](https://nodejs.org)
 
 ## Usage
 
@@ -34,21 +30,17 @@ npm install -g yo generator-node-module-typescript
 yo node-module-typescript
 ```
 
-
 ## Support
 
 Submit an [issue](https://github.com/codejamninja/generator-node-module-typescript/issues/new)
-
 
 ## Screenshots
 
 [Contribute](https://github.com/codejamninja/generator-node-module-typescript/blob/master/CONTRIBUTING.md) a screenshot
 
-
 ## Contributing
 
 Review the [guidelines for contributing](https://github.com/codejamninja/generator-node-module-typescript/blob/master/CONTRIBUTING.md)
-
 
 ## License
 
@@ -56,16 +48,13 @@ Review the [guidelines for contributing](https://github.com/codejamninja/generat
 
 [Jam Risser](https://codejam.ninja) © 2019
 
-
 ## Changelog
 
 Review the [changelog](https://github.com/codejamninja/generator-node-module-typescript/blob/master/CHANGELOG.md)
 
-
 ## Credits
 
-* [Jam Risser](https://codejam.ninja) - Author
-
+- [Jam Risser](https://codejam.ninja) - Author
 
 ## Support on Liberapay
 

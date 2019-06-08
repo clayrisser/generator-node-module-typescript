@@ -1,6 +1,6 @@
 {
   "name": "generator-node-module-typescript",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "description": "yeoman generator for typescript node modules",
   "keywords": [
     "yeoman-generator",
@@ -16,7 +16,7 @@
     "build": "npm run test && babel src -d generators/app",
     "clean": "git clean -fXd -e \\!node_modules -e \\!node_modules/**/*",
     "clean:purge": "git clean -fXd",
-    "format": "prettier --write ./**/*.{json,md,scss,yaml,yml,js,jsx} --ignore-path .gitignore",
+    "format": "prettier --write ./**/*.{json,md,scss,yaml,yml,js,jsx}",
     "link": "npm link && npm link generator-node-module-typescript",
     "lint": "npm run format && eslint ./",
     "lint:fix": "npm run format && eslint --fix ./",
