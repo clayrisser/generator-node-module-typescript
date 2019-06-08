@@ -1,6 +1,6 @@
 {
   "name": "generator-node-module-typescript",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "yeoman generator for typescript node modules",
   "keywords": [
     "yeoman-generator",
@@ -16,7 +16,7 @@
     "build": "npm run test && babel src -d generators/app",
     "clean": "git clean -fXd -e \\!node_modules -e \\!node_modules/**/*",
     "clean:purge": "git clean -fXd",
-    "format": "prettier --write ./src/**/*.js",
+    "format": "prettier --write ./**/*.{json,md,scss,yaml,yml,js,jsx} --ignore-path .gitignore",
     "link": "npm link && npm link generator-node-module-typescript",
     "lint": "npm run format && eslint ./",
     "lint:fix": "npm run format && eslint --fix ./",
@@ -30,7 +30,7 @@
     "generator-github-project": "^0.2.11",
     "idempotent-babel-polyfill": "^7.4.4",
     "lodash": "^4.17.11",
-    "prettier": "^1.17.1",
+    "prettier": "^1.18.2",
     "yeoman-generator": "^4.0.1",
     "yo-base-prompts": "^0.1.8",
     "yo-option-or-prompt": "^0.2.0"
@@ -41,7 +41,7 @@
     "babel-eslint": "^10.0.1",
     "babel-preset-jam": "^0.2.0",
     "eslint": "^5.16.0",
-    "eslint-config-jam": "^0.2.9",
+    "eslint-config-jam": "^0.2.12",
     "yo": "^2.0.6"
   },
   "author": {

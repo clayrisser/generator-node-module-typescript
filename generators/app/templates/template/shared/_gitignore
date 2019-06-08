@@ -77,3 +77,4 @@ typings/
 /lib<% if (!lock) { %>
 package-lock.json<% } %>
 yarn.lock
+tsconfig.tsbuildinfo
