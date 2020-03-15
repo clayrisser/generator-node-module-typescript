@@ -77,14 +77,16 @@ export default async function prompting(yo) {
     version
   };
   if (
-    (await yo.optionOrPrompt([
-      {
-        type: 'confirm',
-        name: 'generatorGithubProject',
-        message: 'Generator GitHub Project:',
-        default: true
-      }
-    ])).generatorGithubProject
+    (
+      await yo.optionOrPrompt([
+        {
+          type: 'confirm',
+          name: 'generatorGithubProject',
+          message: 'Generator GitHub Project:',
+          default: true
+        }
+      ])
+    ).generatorGithubProject
   ) {
     yo.composeWith(require.resolve('generator-github-project'), {
       ...yo.answers,

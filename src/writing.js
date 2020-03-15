@@ -21,8 +21,20 @@ export default async function writing(yo) {
     yo.destinationPath('.eslintrc')
   );
   yo.fs.copy(
+    yo.templatePath('template/shared/Makefile'),
+    yo.destinationPath('Makefile')
+  );
+  yo.fs.copy(
+    yo.templatePath('template/shared/prepare.sh'),
+    yo.destinationPath('prepare.sh')
+  );
+  yo.fs.copy(
     yo.templatePath('template/shared/_babelrc'),
     yo.destinationPath('.babelrc')
+  );
+  yo.fs.copy(
+    yo.templatePath('template/shared/_cspellrc'),
+    yo.destinationPath('.cspellrc')
   );
   yo.fs.copyTpl(
     yo.templatePath('template/shared/_gitignore'),

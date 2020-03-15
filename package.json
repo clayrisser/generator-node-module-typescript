@@ -1,6 +1,6 @@
 {
   "name": "generator-node-module-typescript",
-  "version": "0.2.1",
+  "version": "0.3.0",
   "description": "yeoman generator for typescript node modules",
   "keywords": [
     "yeoman-generator",
@@ -26,23 +26,26 @@
     "unlink": "npm unlink generator-node-module-typescript"
   },
   "dependencies": {
-    "@babel/cli": "^7.4.4",
+    "@babel/cli": "^7.8.4",
     "generator-github-project": "^0.2.11",
     "idempotent-babel-polyfill": "^7.4.4",
-    "lodash": "^4.17.11",
-    "prettier": "^1.18.2",
-    "yeoman-generator": "^4.0.1",
+    "lodash": "^4.17.15",
+    "prettier": "^1.19.1",
+    "yeoman-generator": "^4.7.2",
     "yo-base-prompts": "^0.1.8",
     "yo-option-or-prompt": "^0.2.0"
   },
   "devDependencies": {
-    "@babel/core": "^7.4.5",
-    "@babel/node": "^7.4.5",
-    "babel-eslint": "^10.0.1",
-    "babel-preset-jam": "^0.4.1",
-    "eslint": "^5.16.0",
-    "eslint-config-jam": "^0.2.12",
-    "yo": "^2.0.6"
+    "@babel/core": "^7.8.7",
+    "@babel/node": "^7.8.7",
+    "@babel/plugin-proposal-class-properties": "^7.8.3",
+    "@babel/plugin-proposal-decorators": "^7.8.3",
+    "@babel/plugin-proposal-optional-chaining": "^7.8.3",
+    "@babel/preset-env": "^7.8.7",
+    "babel-eslint": "^10.1.0",
+    "eslint": "^6.8.0",
+    "eslint-config-jam": "^0.2.20",
+    "yo": "^3.1.1"
   },
   "author": {
     "name": "Jam Risser",

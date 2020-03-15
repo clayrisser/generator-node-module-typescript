@@ -5,18 +5,17 @@
     "emitDecoratorMetadata": true,
     "esModuleInterop": true,
     "experimentalDecorators": true,
-    "incremental": true,
-    "lib": ["ES2018", "ESNext.AsyncIterable"],
-    "module": "CommonJS",
-    "moduleResolution": "Node",
-    "outDir": "lib",
+    "incremental": false,
+    "lib": ["esnext"],
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "outDir": ".tmp/lib",
     "resolveJsonModule": true,
-    "rootDir": "src",
+    "rootDir": ".",
     "sourceMap": true,
     "strict": true,
     "strictPropertyInitialization": false,
-    "target": "ESNext"
+    "target": "esnext"
   },
-  "include": ["src"],
-  "exclude": ["node_modules/**", "**/*.d.ts"]
+  "include": ["src", "tests"]
 }
