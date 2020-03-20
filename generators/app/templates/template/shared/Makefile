@@ -68,7 +68,7 @@ lib: node_modules/.tmp/coverage/lcov.info $(shell git ls-files)
 	-@rm -rf lib 2>/dev/null || true
 	@babel src -d lib --extensions '.ts,.tsx' --source-maps inline
 	@tsc -d --emitDeclarationOnly
-	@mv .tmp/lib/src lib
+	@mv .tmp/lib/src/* lib
 	-@rm -rf .tmp/lib 2>/dev/null || true
 
 .PHONY: start
