@@ -1,12 +1,18 @@
+import execa from 'execa';
+
 export default async function install(yo) {
+  await execa('git', ['init'], {
+    cwd: yo.destinationPath(''),
+  });
   const installChar = yo.options.install
     ? yo.options.install[0].toLowerCase()
     : 'y';
-  if (!yo.answers.install || installChar === 'n' || installChar === 'f')
+  if (!yo.answers.install || installChar === 'n' || installChar === 'f') {
     return false;
+  }
   return yo.installDependencies({
     npm: true,
     bower: false,
-    yarn: false
+    yarn: false,
   });
 }

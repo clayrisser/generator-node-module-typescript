@@ -31,39 +31,44 @@
   "scripts": {
     "build": "make -s build",
     "clean": "make -s clean",
+    "coverage": "make -s coverage",
     "format": "make -s format",
     "lint": "make -s lint",
-    "make": "make --version",
     "prepare": "make -s prepare",
     "purge": "make -s purge",
     "report": "make -s report",
     "spellcheck": "make -s spellcheck",
     "start": "make -s start",
-    "test": "make -s test"
+    "test": "make -s test",
+    "test:ui": "make test-ui",
+    "test:watch": "make -s test-watch"
   },
   "dependencies": {
-    "core-js": "^3.6.4"
+    "core-js": "^3.6.5"
   },
   "devDependencies": {
     "@babel/cli": "^7.8.4",
-    "@babel/core": "^7.8.7",
+    "@babel/core": "^7.9.6",
     "@babel/node": "^7.8.7",
     "@babel/plugin-proposal-class-properties": "^7.8.3",
     "@babel/plugin-proposal-decorators": "^7.8.3",
-    "@babel/plugin-proposal-optional-chaining": "^7.8.3",
-    "@babel/preset-env": "^7.8.7",
-    "@babel/preset-typescript": "^7.8.3",
-    "@types/jest": "^25.1.4",
-    "@typescript-eslint/eslint-plugin": "^2.23.0",
-    "@typescript-eslint/parser": "^2.23.0",
-    "cspell": "^4.0.55",
+    "@babel/plugin-proposal-optional-chaining": "^7.9.0",
+    "@babel/preset-env": "^7.9.6",
+    "@babel/preset-typescript": "^7.9.0",
+    "@types/jest": "^25.2.1",
+    "@typescript-eslint/eslint-plugin": "^2.30.0",
+    "@typescript-eslint/parser": "^2.30.0",
+    "cspell": "^4.0.57",
     "eslint": "^6.8.0",
-    "eslint-config-airbnb-typescript": "^7.0.0",
-    "eslint-config-prettier": "^6.10.0",
-    "eslint-plugin-import": "^2.20.1",
-    "gnumake": "^0.1.0",
-    "jest": "^25.1.0",
-    "prettier": "^1.19.1",
+    "eslint-config-airbnb-typescript": "^7.2.1",
+    "eslint-config-prettier": "^6.11.0",
+    "eslint-plugin-import": "^2.20.2",
+    "gnumake": "^0.3.1",
+    "jest": "^25.5.2",
+    "jest-sonar-reporter": "^2.0.0",
+    "lockfile-lint": "^4.2.2",
+    "majestic": "^1.6.2",
+    "prettier": "^2.0.5",
     "typescript": "^3.8.3"
   },
   "engines" : {
@@ -75,5 +80,10 @@
   "jest": {
     "testRegex": "tests(/|/.*/)[^_/]*[jt]sx?$",
     "verbose": true
+  },
+  "jestSonar": {
+    "reportPath": "node_modules/.tmp/reports",
+    "reportFile": "test-report.xml",
+    "indent": 4
   }
 }

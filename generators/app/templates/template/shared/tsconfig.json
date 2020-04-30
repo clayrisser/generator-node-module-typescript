@@ -1,20 +1,19 @@
 {
   "compilerOptions": {
-    "allowSyntheticDefaultImports": true,
+    "allowJs": true,
     "declaration": true,
     "emitDecoratorMetadata": true,
     "esModuleInterop": true,
     "experimentalDecorators": true,
     "incremental": false,
+    "isolatedModules": true,
     "lib": ["esnext"],
     "module": "commonjs",
     "moduleResolution": "node",
-    "outDir": ".tmp/lib",
+    "outDir": "node_modules/.tmp/lib",
     "resolveJsonModule": true,
-    "rootDir": ".",
     "sourceMap": true,
     "strict": true,
-    "strictPropertyInitialization": false,
     "target": "esnext"
   },
   "include": ["src", "tests"]
