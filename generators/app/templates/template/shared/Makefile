@@ -71,7 +71,7 @@ endif
 .PHONY: build
 build: lib
 lib: node_modules/.tmp/coverage/lcov.info $(shell $(GIT) ls-files)
-	-@$(RM) -r lib node_modules/.tmp/lib
+	-@$(RM) -r lib node_modules/.tmp/lib $(NOFAIL)
 	@babel src -d lib --extensions '.ts,.tsx' --source-maps inline
 	@tsc -d --emitDeclarationOnly
 	@$(CP) -r node_modules/.tmp/lib/src/. lib
