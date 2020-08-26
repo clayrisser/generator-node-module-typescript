@@ -1,4 +1,4 @@
-include node_modules/gnumake/gnumake.mk
+include node_modules/makefiles/makefiles.mk
 
 COLLECT_COVERAGE_FROM := ["src/**/*.{js,jsx,ts,tsx}"]
 
@@ -16,73 +16,91 @@ prepare:
 
 .PHONY: format
 format: install
-	-@eslint --fix --ext .js,.jsx,.ts,.tsx . 2>$(NULL)
-	@prettier --write ./**/*.{json,md,scss,yaml,yml,js,jsx,ts,tsx} --ignore-path .gitignore
-	@$(MKDIRP) node_modules/.make && $(TOUCH) -m node_modules/.make/format
-node_modules/.make/format: $(shell $(GIT) ls-files | $(GREP) "\.(j|t)sx?$$")
+	@$(MAKE) -s +format
++format:
+	-@git ls-files | grep -E "((js)|(ts)x?)$$" | xargs eslint --fix $(NOFAIL)
+	@git ls-files | grep -E "((json)|(ya?ml)|(md)|((js)|(ts)x?))$$" | xargs prettier --write
+	@mkdir -p node_modules/.make && touch -m node_modules/.make/format
+node_modules/.make/format: $(shell git ls-files | grep "\.(j|t)sx?$$")
 	@$(MAKE) -s format
 
 .PHONY: spellcheck
 spellcheck: node_modules/.make/format
+	@$(MAKE) -s +spellcheck
++spellcheck:
 	-@cspell --config .cspellrc src/**/*.ts
-	@$(MKDIRP) node_modules/.make && $(TOUCH) -m node_modules/.make/spellcheck
-node_modules/.make/spellcheck: $(shell $(GIT) ls-files | $(GREP) "\.(j|t)sx?$$")
+	@mkdir -p node_modules/.make && touch -m node_modules/.make/spellcheck
+node_modules/.make/spellcheck: $(shell git ls-files | grep "\.(j|t)sx?$$")
 	-@$(MAKE) -s spellcheck
 
 .PHONY: lint
 lint: node_modules/.make/spellcheck
+	@$(MAKE) -s +lint
++lint:
 	# @lockfile-lint --type npm --path package-lock.json --validate-https
 	-@tsc --allowJs --noEmit
-	-@eslint -f json -o node_modules/.tmp/eslintReport.json --ext .js,.jsx,.ts,.tsx . 2>$(NULL)
+	-@git ls-files | grep -E "((js)|(ts)x?)$$" | xargs eslint -f json -o node_modules/.tmp/eslintReport.json $(NOFAIL)
 	@eslint --ext .js,.jsx,.ts,.tsx .
-node_modules/.tmp/eslintReport.json: $(shell $(GIT) ls-files | $(GREP) "\.(j|t)sx?$$")
+node_modules/.tmp/eslintReport.json: $(shell git ls-files | grep "\.(j|t)sx?$$")
 	-@$(MAKE) -s lint
 
 .PHONY: test
 test: node_modules/.tmp/eslintReport.json
+	@$(MAKE) -s +test
++test:
 	@jest --json --outputFile=node_modules/.tmp/jestTestResults.json --coverage --coverageDirectory=node_modules/.tmp/coverage --testResultsProcessor=jest-sonar-reporter --collectCoverageFrom='$(COLLECT_COVERAGE_FROM)' $(ARGS)
-node_modules/.tmp/coverage/lcov.info: $(shell $(GIT) ls-files | $(GREP) "\.(j|t)sx?$$")
+node_modules/.tmp/coverage/lcov.info: $(shell git ls-files | grep "\.(j|t)sx?$$")
 	-@$(MAKE) -s test
 
 .PHONY: coverage
 coverage: node_modules/.tmp/eslintReport.json
+	@$(MAKE) -s +coverage
++coverage:
 	@jest --coverage --collectCoverageFrom='$(COLLECT_COVERAGE_FROM)' $(ARGS)
 
 .PHONY: test-ui
 test-ui: node_modules/.tmp/eslintReport.json node_modules
+	@$(MAKE) -s +test-ui
++test-ui:
 	@majestic $(ARGS)
 
 .PHONY: test-watch
 test-watch: node_modules/.tmp/eslintReport.json node_modules
+	@$(MAKE) -s +test-watch
++test-watch:
 	@jest --watch $(ARGS)
 
-.PHONY: clean
-clean:
-	-@jest --clearCache
-ifeq ($(PLATFORM), win32)
-	@$(GIT) clean -fXd -e !/node_modules -e !/node_modules/**/* -e !/yarn.lock -e !/pnpm-lock.yaml -e !/package-lock.json
-else
-	@$(GIT) clean -fXd -e \!/node_modules -e \!/node_modules/**/* -e \!/yarn.lock -e \!/pnpm-lock.yaml -e \!/package-lock.json
-endif
-	-@$(RM) -rf node_modules/.cache
-	-@$(RM) -rf node_modules/.make
-	-@$(RM) -rf node_modules/.tmp
-
-.PHONY: build
+.PHONY: build +build
 build: lib
-lib: node_modules/.tmp/coverage/lcov.info $(shell $(GIT) ls-files)
+lib: node_modules/.tmp/coverage/lcov.info $(shell git ls-files)
+	@$(MAKE) -s +build
++build:
 	-@$(RM) -r lib node_modules/.tmp/lib $(NOFAIL)
 	@babel src -d lib --extensions '.ts,.tsx' --source-maps inline
 	@tsc -d --emitDeclarationOnly
 	@$(CP) -r node_modules/.tmp/lib/src/. lib
 
-.PHONY: start
+.PHONY: start +start
 start:
+	@$(MAKE) -s +start
++start:
 	@babel-node --extensions '.ts,.tsx' src $(ARGS)
+
+.PHONY: clean
+clean:
+	-@jest --clearCache
+ifeq ($(PLATFORM), win32)
+	@git clean -fXd -e !/node_modules -e !/node_modules/**/* -e !/yarn.lock -e !/pnpm-lock.yaml -e !/package-lock.json
+else
+	@git clean -fXd -e \!/node_modules -e \!/node_modules/**/* -e \!/yarn.lock -e \!/pnpm-lock.yaml -e \!/package-lock.json
+endif
+	-@$(RM) -rf node_modules/.cache
+	-@$(RM) -rf node_modules/.make
+	-@$(RM) -rf node_modules/.tmp
 
 .PHONY: purge
 purge: clean
-	@$(GIT) clean -fXd
+	@git clean -fXd
 
 .PHONY: report
 report: spellcheck lint test
