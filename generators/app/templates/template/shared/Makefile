@@ -5,8 +5,12 @@ BABEL_NODE := node_modules/.bin/babel-node
 TSC := node_modules/.bin/tsc
 COLLECT_COVERAGE_FROM := ["src/**/*.{js,jsx,ts,tsx}"]
 
-BUILD_DEPS := $(DONE)/build $(patsubst src/%.ts,lib/%.d.ts,$(shell find src -name '*.ts')) \
+BUILD_DEPS := $(patsubst src/%.ts,lib/%.d.ts,$(shell find src -name '*.ts')) \
 	$(patsubst src/%.tsx,lib/%.d.ts,$(shell find src -name '*.tsx'))
+BUILD_TARGET := $(BUILD_DEPS) $(DONE)/build
+
+FORMAT_DEPS := $(patsubst %,$(DONE)/_format/%,$(shell git ls-files | grep -E "((json)|(ya?ml)|(md)|((js)|(ts)x?))$$"))
+FORMAT_TARGET := $(FORMAT_DEPS) $(DONE)/format
 
 .PHONY: all
 all: build
@@ -20,15 +24,17 @@ node_modules: package.json
 prepare:
 	@
 
-.PHONY: format
-format: install
-	@$(MAKE) -s +format
-+format:
-	-@git ls-files | grep -E "((js)|(ts)x?)$$" | xargs eslint --fix $(NOFAIL)
-	@git ls-files | grep -E "((json)|(ya?ml)|(md)|((js)|(ts)x?))$$" | xargs prettier --write
-	@mkdir -p node_modules/.make && touch -m node_modules/.make/format
-node_modules/.make/format: $(shell git ls-files | grep "\.(j|t)sx?$$")
-	@$(MAKE) -s format
+.PHONY: format +format
+format: $(FORMAT_TARGET)
++format: $(FORMAT_TARGET)
+$(DONE)/format:
+	@prettier --write $(shell $(call get_deps,format))
+	@$(call reset_deps,format)
+	@$(call done,format)
+$(DONE)/_format/%: %
+	-@rm $(DONE)/format $(NOFAIL)
+	@$(call add_dep,format,$<)
+	@mkdir -p $$(echo $@ | sed 's/\/[^\/]*$$//g') && touch -m $@
 
 .PHONY: spellcheck
 spellcheck: node_modules/.make/format
@@ -77,18 +83,16 @@ test-watch: node_modules/.tmp/eslintReport.json node_modules
 	@jest --watch $(ARGS)
 
 .PHONY: build +build
-build:
-	@$(MAKE) -s +build
-+build: $(BUILD_DEPS)
+build: $(BUILD_TARGET)
++build: $(BUILD_TARGET)
 $(DONE)/build:
-	-@rm -r lib node_modules/.tmp/lib $(NOFAIL)
-	@$(BABEL) src -d lib --extensions '.ts,.tsx' --source-maps
-	@$(TSC) -d --emitDeclarationOnly
-	@cp -r node_modules/.tmp/lib/src/. lib
+	@$(BABEL) $(shell $(call get_deps,build)) -d lib --extensions '.ts,.tsx' --source-maps
+	@$(TSC) --outDir lib -d --emitDeclarationOnly $(shell $(call get_deps,build))
+	@$(call reset_deps,build)
 	@$(call done,build)
 lib/%.d.ts: src/%.ts*
-	@$(BABEL) $< -d lib --extensions '.ts,.tsx' --source-maps
-	@$(TSC) -out $@ -d --emitDeclarationOnly $<
+	-@rm $(DONE)/build $(NOFAIL)
+	@$(call add_dep,build,$<)
 
 .PHONY: start +start
 start:
