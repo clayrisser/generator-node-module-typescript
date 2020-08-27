@@ -9,8 +9,14 @@ BUILD_DEPS := $(patsubst src/%.ts,lib/%.d.ts,$(shell find src -name '*.ts')) \
 	$(patsubst src/%.tsx,lib/%.d.ts,$(shell find src -name '*.tsx'))
 BUILD_TARGET := $(BUILD_DEPS) $(DONE)/build
 
-FORMAT_DEPS := $(patsubst %,$(DONE)/_format/%,$(shell git ls-files | grep -E "((json)|(ya?ml)|(md)|((js)|(ts)x?))$$"))
+FORMAT_DEPS := $(patsubst %,$(DONE)/_format/%,$(shell git ls-files | grep -E "((json)|(ya?ml)|(md)|((j|t)sx?))$$"))
 FORMAT_TARGET := $(FORMAT_DEPS) $(DONE)/format
+
+LINT_DEPS := $(patsubst %,$(DONE)/_lint/%,$(shell git ls-files | grep -E "((j|t)x?)$$"))
+LINT_TARGET := $(LINT_DEPS) $(DONE)/lint
+
+SPELLCHECK_DEPS := $(patsubst %,$(DONE)/_spellcheck/%,$(shell git ls-files))
+SPELLCHECK_TARGET := $(SPELLCHECK_DEPS) $(DONE)/spellcheck
 
 .PHONY: all
 all: build
@@ -28,33 +34,41 @@ prepare:
 format: $(FORMAT_TARGET)
 +format: $(FORMAT_TARGET)
 $(DONE)/format:
+	@for i in $$($(call get_deps,format)); do echo $$i | grep -E "\.(j|t)sx?$$"; done | xargs eslint --fix $(NOFAIL)
 	@prettier --write $(shell $(call get_deps,format))
 	@$(call reset_deps,format)
 	@$(call done,format)
 $(DONE)/_format/%: %
 	-@rm $(DONE)/format $(NOFAIL)
 	@$(call add_dep,format,$<)
-	@mkdir -p $$(echo $@ | sed 's/\/[^\/]*$$//g') && touch -m $@
+	@$(call add_cache,$@)
 
-.PHONY: spellcheck
-spellcheck: node_modules/.make/format
-	@$(MAKE) -s +spellcheck
-+spellcheck:
-	-@cspell --config .cspellrc src/**/*.ts
-	@mkdir -p node_modules/.make && touch -m node_modules/.make/spellcheck
-node_modules/.make/spellcheck: $(shell git ls-files | grep "\.(j|t)sx?$$")
-	-@$(MAKE) -s spellcheck
+.PHONY: spellcheck +spellcheck
+spellcheck: $(SPELLCHECK_TARGET)
++spellcheck: $(SPELLCHECK_TARGET)
+$(DONE)/spellcheck:
+	-@$(CSPELL) --config .cspellrc $(shell $(call get_deps,spellcheck))
+	@$(call reset_deps,spellcheck)
+	@$(call done,spellcheck)
+$(DONE)/_spellcheck/%: %
+	-@rm $(DONE)/spellcheck $(NOFAIL)
+	@$(call add_dep,spellcheck,$<)
+	@$(call add_cache,$@)
 
-.PHONY: lint
-lint: node_modules/.make/spellcheck
-	@$(MAKE) -s +lint
-+lint:
-	# @lockfile-lint --type npm --path package-lock.json --validate-https
-	-@tsc --allowJs --noEmit
-	-@git ls-files | grep -E "((js)|(ts)x?)$$" | xargs eslint -f json -o node_modules/.tmp/eslintReport.json $(NOFAIL)
-	@eslint --ext .js,.jsx,.ts,.tsx .
-node_modules/.tmp/eslintReport.json: $(shell git ls-files | grep "\.(j|t)sx?$$")
-	-@$(MAKE) -s lint
+.PHONY: lint +lint
+lint: $(LINT_TARGET)
++lint: $(LINT_TARGET)
+$(DONE)/lint:
+	# @$(LOCKFILE_LINT) --type npm --path package-lock.json --validate-https
+	-@$(TSC) --allowJs --noEmit $(shell $(call get_deps,lint))
+	-@$(ESLINT) -f json -o node_modules/.tmp/eslintReport.json $(shell $(call get_deps,lint)) $(NOFAIL)
+	@$(ESLINT) $(shell $(call get_deps,lint))
+	@$(call reset_deps,lint)
+	@$(call done,lint)
+$(DONE)/_lint/%: %
+	-@rm $(DONE)/lint $(NOFAIL)
+	@$(call add_dep,lint,$<)
+	@$(call add_cache,$@)
 
 .PHONY: test
 test: node_modules/.tmp/eslintReport.json
