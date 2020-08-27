@@ -1,6 +1,12 @@
 include node_modules/makefiles/makefiles.mk
 
+BABEL := node_modules/.bin/babel
+BABEL_NODE := node_modules/.bin/babel-node
+TSC := node_modules/.bin/tsc
 COLLECT_COVERAGE_FROM := ["src/**/*.{js,jsx,ts,tsx}"]
+
+BUILD_DEPS := $(DONE)/build $(patsubst src/%.ts,lib/%.d.ts,$(shell find src -name '*.ts')) \
+	$(patsubst src/%.tsx,lib/%.d.ts,$(shell find src -name '*.tsx'))
 
 .PHONY: all
 all: build
@@ -71,14 +77,18 @@ test-watch: node_modules/.tmp/eslintReport.json node_modules
 	@jest --watch $(ARGS)
 
 .PHONY: build +build
-build: lib
-lib: node_modules/.tmp/coverage/lcov.info $(shell git ls-files)
+build:
 	@$(MAKE) -s +build
-+build:
-	-@$(RM) -r lib node_modules/.tmp/lib $(NOFAIL)
-	@babel src -d lib --extensions '.ts,.tsx' --source-maps inline
-	@tsc -d --emitDeclarationOnly
-	@$(CP) -r node_modules/.tmp/lib/src/. lib
++build: $(BUILD_DEPS)
+$(DONE)/build:
+	-@rm -r lib node_modules/.tmp/lib $(NOFAIL)
+	@$(BABEL) src -d lib --extensions '.ts,.tsx' --source-maps
+	@$(TSC) -d --emitDeclarationOnly
+	@cp -r node_modules/.tmp/lib/src/. lib
+	@$(call done,build)
+lib/%.d.ts: src/%.ts*
+	@$(BABEL) $< -d lib --extensions '.ts,.tsx' --source-maps
+	@$(TSC) -out $@ -d --emitDeclarationOnly $<
 
 .PHONY: start +start
 start:
