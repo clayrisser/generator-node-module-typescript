@@ -2,6 +2,11 @@ include node_modules/makefiles/makefiles.mk
 
 BABEL := node_modules/.bin/babel
 BABEL_NODE := node_modules/.bin/babel-node
+CSPELL := node_modules/.bin/cspell
+ESLINT := node_modules/.bin/eslint
+JEST := node_modules/.bin/jest
+LOCKFILE_LINT := node_modules/.bin/lockfile-lint
+PRETTIER := node_modules/.bin/prettier
 TSC := node_modules/.bin/tsc
 COLLECT_COVERAGE_FROM := ["src/**/*.{js,jsx,ts,tsx}"]
 
@@ -9,14 +14,17 @@ BUILD_DEPS := $(patsubst src/%.ts,lib/%.d.ts,$(shell find src -name '*.ts')) \
 	$(patsubst src/%.tsx,lib/%.d.ts,$(shell find src -name '*.tsx'))
 BUILD_TARGET := $(BUILD_DEPS) $(DONE)/build
 
-FORMAT_DEPS := $(patsubst %,$(DONE)/_format/%,$(shell git ls-files | grep -E "((json)|(ya?ml)|(md)|((j|t)sx?))$$"))
+FORMAT_DEPS := $(patsubst %,$(DONE)/_format/%,$(shell git ls-files | grep -E "((json)|(ya?ml)|(md)|([jt]sx?))$$"))
 FORMAT_TARGET := $(FORMAT_DEPS) $(DONE)/format
 
-LINT_DEPS := $(patsubst %,$(DONE)/_lint/%,$(shell git ls-files | grep -E "((j|t)x?)$$"))
+LINT_DEPS := $(patsubst %,$(DONE)/_lint/%,$(shell git ls-files | grep -E "([jt]x?)$$"))
 LINT_TARGET := $(LINT_DEPS) $(DONE)/lint
 
 SPELLCHECK_DEPS := $(patsubst %,$(DONE)/_spellcheck/%,$(shell git ls-files))
 SPELLCHECK_TARGET := $(SPELLCHECK_DEPS) $(DONE)/spellcheck
+
+TEST_DEPS := $(patsubst %,$(DONE)/_test/%,$(shell git ls-files | grep -E "tests(/|/.*/)[^_/]*[jt]sx?$$"))
+TEST_TARGET := $(TEST_DEPS) $(DONE)/test
 
 .PHONY: all
 all: build
@@ -34,8 +42,8 @@ prepare:
 format: $(FORMAT_TARGET)
 +format: $(FORMAT_TARGET)
 $(DONE)/format:
-	@for i in $$($(call get_deps,format)); do echo $$i | grep -E "\.(j|t)sx?$$"; done | xargs eslint --fix $(NOFAIL)
-	@prettier --write $(shell $(call get_deps,format))
+	@for i in $$($(call get_deps,format)); do echo $$i | grep -E "\.(j|t)sx?$$"; done | xargs $(ESLINT) --fix $(NOFAIL)
+	@$(PRETTIER) --write $(shell $(call get_deps,format))
 	@$(call reset_deps,format)
 	@$(call done,format)
 $(DONE)/_format/%: %
@@ -70,13 +78,18 @@ $(DONE)/_lint/%: %
 	@$(call add_dep,lint,$<)
 	@$(call add_cache,$@)
 
-.PHONY: test
-test: node_modules/.tmp/eslintReport.json
-	@$(MAKE) -s +test
-+test:
-	@jest --json --outputFile=node_modules/.tmp/jestTestResults.json --coverage --coverageDirectory=node_modules/.tmp/coverage --testResultsProcessor=jest-sonar-reporter --collectCoverageFrom='$(COLLECT_COVERAGE_FROM)' $(ARGS)
-node_modules/.tmp/coverage/lcov.info: $(shell git ls-files | grep "\.(j|t)sx?$$")
-	-@$(MAKE) -s test
+.PHONY: test +test
+test: $(TEST_TARGET)
++test: $(TEST_TARGET)
+$(DONE)/test:
+	@echo $(TEST_TARGET)
+	@echo $(JEST) --json --outputFile=node_modules/.tmp/jestTestResults.json --coverage --coverageDirectory=node_modules/.tmp/coverage --testResultsProcessor=jest-sonar-reporter --collectCoverageFrom='$(COLLECT_COVERAGE_FROM)' $(shell $(call get_deps,test))
+	@$(call reset_deps,test)
+	@$(call done,test)
+$(DONE)/_test/%: %
+	-@rm $(DONE)/test $(NOFAIL)
+	@$(call add_dep,test,$<)
+	@$(call add_cache,$@)
 
 .PHONY: coverage
 coverage: node_modules/.tmp/eslintReport.json
