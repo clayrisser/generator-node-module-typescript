@@ -6,6 +6,7 @@ CSPELL := node_modules/.bin/cspell
 ESLINT := node_modules/.bin/eslint
 JEST := node_modules/.bin/jest
 LOCKFILE_LINT := node_modules/.bin/lockfile-lint
+MAJESTIC := node_modules/.bin/majestic
 PRETTIER := node_modules/.bin/prettier
 TSC := node_modules/.bin/tsc
 COLLECT_COVERAGE_FROM := ["src/**/*.{js,jsx,ts,tsx}"]
@@ -82,8 +83,7 @@ $(DONE)/_lint/%: %
 test: $(TEST_TARGET)
 +test: $(TEST_TARGET)
 $(DONE)/test:
-	@echo $(TEST_TARGET)
-	@echo $(JEST) --json --outputFile=node_modules/.tmp/jestTestResults.json --coverage --coverageDirectory=node_modules/.tmp/coverage --testResultsProcessor=jest-sonar-reporter --collectCoverageFrom='$(COLLECT_COVERAGE_FROM)' $(shell $(call get_deps,test))
+	@$(JEST) --json --outputFile=node_modules/.tmp/jestTestResults.json --coverage --coverageDirectory=node_modules/.tmp/coverage --testResultsProcessor=jest-sonar-reporter --collectCoverageFrom='$(COLLECT_COVERAGE_FROM)' $(shell $(call get_deps,test))
 	@$(call reset_deps,test)
 	@$(call done,test)
 $(DONE)/_test/%: %
@@ -95,19 +95,19 @@ $(DONE)/_test/%: %
 coverage: node_modules/.tmp/eslintReport.json
 	@$(MAKE) -s +coverage
 +coverage:
-	@jest --coverage --collectCoverageFrom='$(COLLECT_COVERAGE_FROM)' $(ARGS)
+	@$(JEST) --coverage --collectCoverageFrom='$(COLLECT_COVERAGE_FROM)' $(ARGS)
 
 .PHONY: test-ui
 test-ui: node_modules/.tmp/eslintReport.json node_modules
 	@$(MAKE) -s +test-ui
 +test-ui:
-	@majestic $(ARGS)
+	@$(MAJESTIC) $(ARGS)
 
 .PHONY: test-watch
 test-watch: node_modules/.tmp/eslintReport.json node_modules
 	@$(MAKE) -s +test-watch
 +test-watch:
-	@jest --watch $(ARGS)
+	@$(JEST) --watch $(ARGS)
 
 .PHONY: build +build
 build: $(BUILD_TARGET)
@@ -125,11 +125,11 @@ lib/%.d.ts: src/%.ts*
 start:
 	@$(MAKE) -s +start
 +start:
-	@babel-node --extensions '.ts,.tsx' src $(ARGS)
+	@$(BABEL_NODE) --extensions '.ts,.tsx' src $(ARGS)
 
 .PHONY: clean
 clean:
-	-@jest --clearCache
+	-@$(JEST) --clearCache
 ifeq ($(PLATFORM), win32)
 	@git clean -fXd -e !/node_modules -e !/node_modules/**/* -e !/yarn.lock -e !/pnpm-lock.yaml -e !/package-lock.json
 else
