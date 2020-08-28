@@ -24,7 +24,8 @@ LINT_TARGET := $(LINT_DEPS) $(DONE)/lint
 SPELLCHECK_DEPS := $(patsubst %,$(DONE)/_spellcheck/%,$(shell git ls-files))
 SPELLCHECK_TARGET := $(SPELLCHECK_DEPS) $(DONE)/spellcheck
 
-TEST_DEPS := $(patsubst %,$(DONE)/_test/%,$(shell git ls-files | grep -E "tests(/|/.*/)[^_/]*[jt]sx?$$"))
+TEST_REGEXP := "tests(/|/.*/)[^_/]*[jt]sx?$$"
+TEST_DEPS := $(patsubst %,$(DONE)/_test/%,$(shell $(DEPSLIST) $$(git ls-files | grep -E $(TEST_REGEXP))))
 TEST_TARGET := $(TEST_DEPS) $(DONE)/test
 
 .PHONY: all
@@ -83,11 +84,13 @@ $(DONE)/_lint/%: %
 test: $(TEST_TARGET)
 +test: $(TEST_TARGET)
 $(DONE)/test:
-	@$(JEST) --json --outputFile=node_modules/.tmp/jestTestResults.json --coverage --coverageDirectory=node_modules/.tmp/coverage --testResultsProcessor=jest-sonar-reporter --collectCoverageFrom='$(COLLECT_COVERAGE_FROM)' $(shell $(call get_deps,test))
+	@$(shell $(DEPSLIST) --reverse $$($(call get_deps,test)) | grep -E $(TEST_REGEXP))
+# @$(JEST) --json --outputFile=node_modules/.tmp/jestTestResults.json --coverage --coverageDirectory=node_modules/.tmp/coverage --testResultsProcessor=jest-sonar-reporter --collectCoverageFrom='$(COLLECT_COVERAGE_FROM)' $(shell $(call get_deps,test))
 	@$(call reset_deps,test)
 	@$(call done,test)
 $(DONE)/_test/%: %
 	-@rm $(DONE)/test $(NOFAIL)
+	@echo :$<
 	@$(call add_dep,test,$<)
 	@$(call add_cache,$@)
 
