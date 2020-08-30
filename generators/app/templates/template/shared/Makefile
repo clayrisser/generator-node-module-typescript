@@ -84,8 +84,7 @@ $(DONE)/_lint/%: %
 test: $(TEST_TARGET)
 +test: $(TEST_TARGET)
 $(DONE)/test:
-	@$(shell $(DEPSLIST) --reverse $$($(call get_deps,test)) | grep -E $(TEST_REGEXP))
-# @$(JEST) --json --outputFile=node_modules/.tmp/jestTestResults.json --coverage --coverageDirectory=node_modules/.tmp/coverage --testResultsProcessor=jest-sonar-reporter --collectCoverageFrom='$(COLLECT_COVERAGE_FROM)' $(shell $(call get_deps,test))
+	@$(JEST) --json --outputFile=node_modules/.tmp/jestTestResults.json --coverage --coverageDirectory=node_modules/.tmp/coverage --testResultsProcessor=jest-sonar-reporter --collectCoverageFrom='$(COLLECT_COVERAGE_FROM)' $(shell $(DEPSLIST) --reverse $$($(call get_deps,test)) | grep -E $(TEST_REGEXP))
 	@$(call reset_deps,test)
 	@$(call done,test)
 $(DONE)/_test/%: %
