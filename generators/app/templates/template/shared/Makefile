@@ -18,7 +18,7 @@ BUILD_TARGET := $(BUILD_DEPS) $(DONE)/build
 FORMAT_DEPS := $(patsubst %,$(DONE)/_format/%,$(shell git ls-files | grep -E "((json)|(ya?ml)|(md)|([jt]sx?))$$"))
 FORMAT_TARGET := $(FORMAT_DEPS) $(DONE)/format
 
-LINT_DEPS := $(patsubst %,$(DONE)/_lint/%,$(shell git ls-files | grep -E "([jt]x?)$$"))
+LINT_DEPS := $(patsubst %,$(DONE)/_lint/%,$(shell git ls-files | grep -E "([jt]sx?)$$"))
 LINT_TARGET := $(LINT_DEPS) $(DONE)/lint
 
 SPELLCHECK_DEPS := $(patsubst %,$(DONE)/_spellcheck/%,$(shell git ls-files))
@@ -44,7 +44,8 @@ prepare:
 format: $(FORMAT_TARGET)
 +format: $(FORMAT_TARGET)
 $(DONE)/format:
-	@for i in $$($(call get_deps,format)); do echo $$i | grep -E "\.(j|t)sx?$$"; done | xargs $(ESLINT) --fix $(NOFAIL)
+	@for i in $$($(call get_deps,format)); do echo $$i | \
+		grep -E "\.(j|t)sx?$$"; done | xargs $(ESLINT) --fix >/dev/null ||true
 	@$(PRETTIER) --write $(shell $(call get_deps,format))
 	@$(call reset_deps,format)
 	@$(call done,format)
@@ -54,7 +55,7 @@ $(DONE)/_format/%: %
 	@$(call add_cache,$@)
 
 .PHONY: spellcheck +spellcheck
-spellcheck: $(SPELLCHECK_TARGET)
+spellcheck: format $(SPELLCHECK_TARGET)
 +spellcheck: $(SPELLCHECK_TARGET)
 $(DONE)/spellcheck:
 	-@$(CSPELL) --config .cspellrc $(shell $(call get_deps,spellcheck))
@@ -66,13 +67,13 @@ $(DONE)/_spellcheck/%: %
 	@$(call add_cache,$@)
 
 .PHONY: lint +lint
-lint: $(LINT_TARGET)
+lint: spellcheck $(LINT_TARGET)
 +lint: $(LINT_TARGET)
 $(DONE)/lint:
-	# @$(LOCKFILE_LINT) --type npm --path package-lock.json --validate-https
+# -@$(LOCKFILE_LINT) --type npm --path package-lock.json --validate-https
 	-@$(TSC) --allowJs --noEmit $(shell $(call get_deps,lint))
 	-@$(ESLINT) -f json -o node_modules/.tmp/eslintReport.json $(shell $(call get_deps,lint)) $(NOFAIL)
-	@$(ESLINT) $(shell $(call get_deps,lint))
+	-@$(ESLINT) $(shell $(call get_deps,lint))
 	@$(call reset_deps,lint)
 	@$(call done,lint)
 $(DONE)/_lint/%: %
@@ -81,38 +82,22 @@ $(DONE)/_lint/%: %
 	@$(call add_cache,$@)
 
 .PHONY: test +test
-test: $(TEST_TARGET)
+test: lint $(TEST_TARGET)
 +test: $(TEST_TARGET)
 $(DONE)/test:
-	@$(JEST) --json --outputFile=node_modules/.tmp/jestTestResults.json --coverage --coverageDirectory=node_modules/.tmp/coverage --testResultsProcessor=jest-sonar-reporter --collectCoverageFrom='$(COLLECT_COVERAGE_FROM)' $(shell $(DEPSLIST) --reverse $$($(call get_deps,test)) | grep -E $(TEST_REGEXP))
+	@$(JEST) --json --outputFile=node_modules/.tmp/jestTestResults.json --coverage \
+		--coverageDirectory=node_modules/.tmp/coverage --testResultsProcessor=jest-sonar-reporter \
+		--collectCoverageFrom='$(COLLECT_COVERAGE_FROM)' $(shell $(DEPSLIST) --reverse $$($(call get_deps,test)) | \
+		grep -E $(TEST_REGEXP))
 	@$(call reset_deps,test)
 	@$(call done,test)
 $(DONE)/_test/%: %
 	-@rm $(DONE)/test $(NOFAIL)
-	@echo :$<
 	@$(call add_dep,test,$<)
 	@$(call add_cache,$@)
 
-.PHONY: coverage
-coverage: node_modules/.tmp/eslintReport.json
-	@$(MAKE) -s +coverage
-+coverage:
-	@$(JEST) --coverage --collectCoverageFrom='$(COLLECT_COVERAGE_FROM)' $(ARGS)
-
-.PHONY: test-ui
-test-ui: node_modules/.tmp/eslintReport.json node_modules
-	@$(MAKE) -s +test-ui
-+test-ui:
-	@$(MAJESTIC) $(ARGS)
-
-.PHONY: test-watch
-test-watch: node_modules/.tmp/eslintReport.json node_modules
-	@$(MAKE) -s +test-watch
-+test-watch:
-	@$(JEST) --watch $(ARGS)
-
 .PHONY: build +build
-build: $(BUILD_TARGET)
+build: test $(BUILD_TARGET)
 +build: $(BUILD_TARGET)
 $(DONE)/build:
 	@$(BABEL) $(shell $(call get_deps,build)) -d lib --extensions '.ts,.tsx' --source-maps
@@ -123,8 +108,26 @@ lib/%.d.ts: src/%.ts*
 	-@rm $(DONE)/build $(NOFAIL)
 	@$(call add_dep,build,$<)
 
+.PHONY: coverage
+coverage: lint
+	@$(MAKE) -s +coverage
++coverage:
+	@$(JEST) --coverage --collectCoverageFrom='$(COLLECT_COVERAGE_FROM)' $(ARGS)
+
+.PHONY: test-ui
+test-ui: lint
+	@$(MAKE) -s +test-ui
++test-ui:
+	@$(MAJESTIC) $(ARGS)
+
+.PHONY: test-watch
+test-watch: lint
+	@$(MAKE) -s +test-watch
++test-watch:
+	@$(JEST) --watch $(ARGS)
+
 .PHONY: start +start
-start:
+start: format
 	@$(MAKE) -s +start
 +start:
 	@$(BABEL_NODE) --extensions '.ts,.tsx' src $(ARGS)
@@ -133,9 +136,19 @@ start:
 clean:
 	-@$(JEST) --clearCache
 ifeq ($(PLATFORM), win32)
-	@git clean -fXd -e !/node_modules -e !/node_modules/**/* -e !/yarn.lock -e !/pnpm-lock.yaml -e !/package-lock.json
+	-@git clean -fXd \
+		-e !/node_modules \
+		-e !/node_modules/**/* \
+		-e !/yarn.lock \
+		-e !/pnpm-lock.yaml \
+		-e !/package-lock.json
 else
-	@git clean -fXd -e \!/node_modules -e \!/node_modules/**/* -e \!/yarn.lock -e \!/pnpm-lock.yaml -e \!/package-lock.json
+	-@git clean -fXd \
+		-e \!/node_modules \
+		-e \!/node_modules/**/* \
+		-e \!/yarn.lock \
+		-e \!/pnpm-lock.yaml \
+		-e \!/package-lock.json
 endif
 	-@$(RM) -rf node_modules/.cache
 	-@$(RM) -rf node_modules/.make
@@ -143,7 +156,7 @@ endif
 
 .PHONY: purge
 purge: clean
-	@git clean -fXd
+	-@git clean -fXd
 
 .PHONY: report
 report: spellcheck lint test
