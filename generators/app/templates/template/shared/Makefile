@@ -40,9 +40,12 @@ node_modules: package.json
 prepare:
 	@
 
-.PHONY: format +format
-format: $(FORMAT_TARGET)
-+format: $(FORMAT_TARGET)
+.PHONY: format +format _format ~format
+format: _format ~format
+~format: $(FORMAT_TARGET)
++format: _format $(FORMAT_TARGET)
+_format:
+	-@rm -rf $(DONE)/_format $(NOFAIL)
 $(DONE)/format:
 	@for i in $$($(call get_deps,format)); do echo $$i | \
 		grep -E "\.(j|t)sx?$$"; done | xargs $(ESLINT) --fix >/dev/null ||true
@@ -54,9 +57,12 @@ $(DONE)/_format/%: %
 	@$(call add_dep,format,$<)
 	@$(call add_cache,$@)
 
-.PHONY: spellcheck +spellcheck
-spellcheck: format $(SPELLCHECK_TARGET)
-+spellcheck: $(SPELLCHECK_TARGET)
+.PHONY: spellcheck +spellcheck _spellcheck ~spellcheck
+spellcheck: _spellcheck ~spellcheck
+~spellcheck: ~format $(SPELLCHECK_TARGET)
++spellcheck: _spellcheck $(SPELLCHECK_TARGET)
+_spellcheck:
+	-@rm -rf $(DONE)/_spellcheck $(NOFAIL)
 $(DONE)/spellcheck:
 	-@$(CSPELL) --config .cspellrc $(shell $(call get_deps,spellcheck))
 	@$(call reset_deps,spellcheck)
@@ -66,9 +72,12 @@ $(DONE)/_spellcheck/%: %
 	@$(call add_dep,spellcheck,$<)
 	@$(call add_cache,$@)
 
-.PHONY: lint +lint
-lint: spellcheck $(LINT_TARGET)
-+lint: $(LINT_TARGET)
+.PHONY: lint +lint _lint ~lint
+lint: _lint ~lint
+~lint: ~spellcheck $(LINT_TARGET)
++lint: _lint $(LINT_TARGET)
+_lint:
+	-@rm -rf $(DONE)/_lint $(NOFAIL)
 $(DONE)/lint:
 # -@$(LOCKFILE_LINT) --type npm --path package-lock.json --validate-https
 	-@$(TSC) --allowJs --noEmit $(shell $(call get_deps,lint))
@@ -81,9 +90,12 @@ $(DONE)/_lint/%: %
 	@$(call add_dep,lint,$<)
 	@$(call add_cache,$@)
 
-.PHONY: test +test
-test: lint $(TEST_TARGET)
-+test: $(TEST_TARGET)
+.PHONY: test +test _test ~test
+test: _test ~test
+~test: ~lint $(TEST_TARGET)
++test: _test $(TEST_TARGET)
+_test:
+	-@rm -rf $(DONE)/_test $(NOFAIL)
 $(DONE)/test:
 	@$(JEST) --json --outputFile=node_modules/.tmp/jestTestResults.json --coverage \
 		--coverageDirectory=node_modules/.tmp/coverage --testResultsProcessor=jest-sonar-reporter \
@@ -96,9 +108,12 @@ $(DONE)/_test/%: %
 	@$(call add_dep,test,$<)
 	@$(call add_cache,$@)
 
-.PHONY: build +build
-build: test $(BUILD_TARGET)
-+build: $(BUILD_TARGET)
+.PHONY: build +build _build ~build
+build: ~build
+~build: ~test $(BUILD_TARGET)
++build: _build $(BUILD_TARGET)
+_build:
+	-@rm -rf lib $(NOFAIL)
 $(DONE)/build:
 	@$(BABEL) $(shell $(call get_deps,build)) -d lib --extensions '.ts,.tsx' --source-maps
 	@$(TSC) --outDir lib -d --emitDeclarationOnly $(shell $(call get_deps,build))
