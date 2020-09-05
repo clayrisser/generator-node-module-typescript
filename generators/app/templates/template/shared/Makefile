@@ -11,7 +11,25 @@ PRETTIER := node_modules/.bin/prettier
 TSC := node_modules/.bin/tsc
 COLLECT_COVERAGE_FROM := ["src/**/*.{js,jsx,ts,tsx}"]
 
-BUILD_DEPS := $(patsubst src/%.ts,lib/%.d.ts,$(shell find src -name '*.ts')) \
+TSCONFIG := --allowJs \
+    --allowSyntheticDefaultImports \
+    --declaration \
+    --emitDecoratorMetadata \
+    --esModuleInterop \
+    --experimentalDecorators \
+    --jsx react \
+    --lib dom,esnext \
+    --module commonjs \
+    --moduleResolution node \
+    --outDir node_modules/.tmp/lib \
+    --resolveJsonModule \
+    --skipLibCheck \
+    --sourceMap \
+    --strict \
+    --target esnext \
+    src/**/*.d.ts
+
+BUILD_DEPS := $(patsubst src/%.ts,lib/%.d.ts,$(shell find src -name '*.ts' -not -name '*.d.ts')) \
 	$(patsubst src/%.tsx,lib/%.d.ts,$(shell find src -name '*.tsx'))
 BUILD_TARGET := $(BUILD_DEPS) $(DONE)/build
 
@@ -80,7 +98,7 @@ _lint:
 	-@rm -rf $(DONE)/_lint $(NOFAIL)
 $(DONE)/lint:
 # -@$(LOCKFILE_LINT) --type npm --path package-lock.json --validate-https
-	-@$(TSC) --allowJs --noEmit $(shell $(call get_deps,lint))
+	-@$(TSC) $(TSCONFIG) --noEmit $(shell $(call get_deps,lint))
 	-@$(ESLINT) -f json -o node_modules/.tmp/eslintReport.json $(shell $(call get_deps,lint)) $(NOFAIL)
 	-@$(ESLINT) $(shell $(call get_deps,lint))
 	@$(call reset_deps,lint)
@@ -97,7 +115,7 @@ test: _test ~test
 _test:
 	-@rm -rf $(DONE)/_test $(NOFAIL)
 $(DONE)/test:
-	@$(JEST) --json --outputFile=node_modules/.tmp/jestTestResults.json --coverage \
+	-@$(JEST) --json --outputFile=node_modules/.tmp/jestTestResults.json --coverage \
 		--coverageDirectory=node_modules/.tmp/coverage --testResultsProcessor=jest-sonar-reporter \
 		--collectCoverageFrom='$(COLLECT_COVERAGE_FROM)' $(shell $(DEPSLIST) --reverse $$($(call get_deps,test)) | \
 		grep -E $(TEST_REGEXP))
@@ -115,34 +133,42 @@ build: ~build
 _build:
 	-@rm -rf lib $(NOFAIL)
 $(DONE)/build:
-	@$(BABEL) $(shell $(call get_deps,build)) -d lib --extensions '.ts,.tsx' --source-maps
-	@$(TSC) --outDir lib -d --emitDeclarationOnly $(shell $(call get_deps,build))
+	-@rm -r node_modules/.tmp/lib $(NOFAIL)
+	@$(BABEL) $(shell $(call get_deps,build)) -d .tmp/lib --relative --extensions '.ts,.tsx' --source-maps
+	@$(TSC) $(TSCONFIG) --emitDeclarationOnly -d $(shell $(call get_deps,build))
+	@([ ! -z "$(shell find -path "*/.tmp/lib" -not -path "./node_modules/*")" ] && \
+		$(MAKE) $(shell find -path "*/.tmp/lib" -not -path "./node_modules/*")) || true
+	@cp -r node_modules/.tmp/lib/src/. lib $(NOFAIL)
 	@$(call reset_deps,build)
 	@$(call done,build)
 lib/%.d.ts: src/%.ts*
 	-@rm $(DONE)/build $(NOFAIL)
 	@$(call add_dep,build,$<)
+%/.tmp/lib: always
+	@mkdir -p lib/$(shell echo $@ | sed 's/^src\///g' | sed 's/\.tmp\/lib$$//g')
+	@cp -r $@/. lib/$(shell echo $@ | sed 's/^src\///g' | sed 's/\.tmp\/lib$$//g')
+	-@rm -rf .tmp/lib $(shell echo $@ | sed 's/\/lib$$//g') $(NOFAIL)
 
 .PHONY: coverage
-coverage: lint
+coverage: ~lint
 	@$(MAKE) -s +coverage
 +coverage:
 	@$(JEST) --coverage --collectCoverageFrom='$(COLLECT_COVERAGE_FROM)' $(ARGS)
 
 .PHONY: test-ui
-test-ui: lint
+test-ui: ~lint
 	@$(MAKE) -s +test-ui
 +test-ui:
 	@$(MAJESTIC) $(ARGS)
 
 .PHONY: test-watch
-test-watch: lint
+test-watch: ~lint
 	@$(MAKE) -s +test-watch
 +test-watch:
 	@$(JEST) --watch $(ARGS)
 
 .PHONY: start +start
-start: format
+start: ~format
 	@$(MAKE) -s +start
 +start:
 	@$(BABEL_NODE) --extensions '.ts,.tsx' src $(ARGS)
@@ -175,6 +201,9 @@ purge: clean
 
 .PHONY: report
 report: spellcheck lint test
+	@
+
+always:
 	@
 
 %:
