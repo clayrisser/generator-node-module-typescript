@@ -13,7 +13,7 @@ COLLECT_COVERAGE_FROM := ["src/**/*.{js,jsx,ts,tsx}"]
 
 BUILD_DEPS := $(patsubst src/%.ts,lib/%.d.ts,$(shell find src -name '*.ts' -not -name '*.d.ts')) \
 	$(patsubst src/%.tsx,lib/%.d.ts,$(shell find src -name '*.tsx'))
-BUILD_TARGET := $(BUILD_DEPS) $(DONE)/build
+BUILD_TARGET := $(BUILD_DEPS) lib
 
 FORMAT_DEPS := $(patsubst %,$(DONE)/_format/%,$(shell git ls-files | grep -E "((json)|(ya?ml)|(md)|([jt]sx?))$$"))
 FORMAT_TARGET := $(FORMAT_DEPS) $(DONE)/format
