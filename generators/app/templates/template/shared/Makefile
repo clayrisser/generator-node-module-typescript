@@ -171,8 +171,5 @@ purge: clean
 report: spellcheck lint test
 	@
 
-always:
-	@
-
 %:
 	@
