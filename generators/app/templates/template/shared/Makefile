@@ -78,7 +78,7 @@ lint: _lint ~lint
 _lint:
 	-@rm -rf $(DONE)/_lint $(NOFAIL)
 $(DONE)/lint:
-# -@$(LOCKFILE_LINT) --type npm --path package-lock.json --validate-https
+#	-@$(LOCKFILE_LINT) --type npm --path package-lock.json --validate-https
 	-@$(ESLINT) -f json -o node_modules/.tmp/eslintReport.json $(shell $(call get_deps,lint)) $(NOFAIL)
 	-@$(ESLINT) $(shell $(call get_deps,lint))
 	@$(call reset_deps,lint)
