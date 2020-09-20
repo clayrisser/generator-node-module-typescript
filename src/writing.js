@@ -43,10 +43,6 @@ export default async function writing(yo) {
     yo.context
   );
   yo.fs.copy(
-    yo.templatePath('template/shared/_prettierrc'),
-    yo.destinationPath('.prettierrc')
-  );
-  yo.fs.copy(
     yo.templatePath('template/shared/tsconfig.json'),
     yo.destinationPath('tsconfig.json')
   );
