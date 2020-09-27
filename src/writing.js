@@ -25,6 +25,10 @@ export default async function writing(yo) {
     yo.destinationPath('Makefile')
   );
   yo.fs.copy(
+    yo.templatePath('template/shared/silicon.mk'),
+    yo.destinationPath('silicon.mk')
+  );
+  yo.fs.copy(
     yo.templatePath('template/shared/_babelrc'),
     yo.destinationPath('.babelrc')
   );

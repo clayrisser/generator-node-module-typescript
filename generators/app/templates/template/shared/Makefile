@@ -1,4 +1,4 @@
-include node_modules/makefiles/makefiles.mk
+include silicon.mk
 
 BABEL := node_modules/.bin/babel
 BABEL_NODE := node_modules/.bin/babel-node
@@ -41,7 +41,7 @@ prepare:
 
 .PHONY: format +format _format ~format
 format: _format ~format
-~format: $(FORMAT_TARGET)
+~format: install $(FORMAT_TARGET)
 +format: _format $(FORMAT_TARGET)
 _format:
 	-@rm -rf $(DONE)/_format $(NOFAIL)
