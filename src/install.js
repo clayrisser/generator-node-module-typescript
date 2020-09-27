@@ -12,12 +12,7 @@ export default async function install(yo) {
   if (!yo.answers.install || installChar === 'n' || installChar === 'f') {
     return false;
   }
-  await npmInstall(yo, (await getCommand()) || 'npm');
-  return yo.installDependencies({
-    npm: false,
-    bower: false,
-    yarn: false
-  });
+  return npmInstall(yo, (await getCommand()) || 'npm');
 }
 
 export async function npmInstall(yo, npm = 'npm') {
