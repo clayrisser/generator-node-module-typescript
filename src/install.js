@@ -6,6 +6,9 @@ export default async function install(yo) {
   await execa('git', ['init'], {
     cwd: yo.destinationPath('')
   });
+  await execa('git', ['add', '.'], {
+    cwd: yo.destinationPath('')
+  });
   const installChar = yo.options.install
     ? yo.options.install[0].toLowerCase()
     : 'y';
