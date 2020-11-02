@@ -44,6 +44,10 @@ $(DONE)/install: package.json
 prepare:
 	@
 
+.PHONY: upgrade
+upgrade:
+	@$(NPM) upgrade --latest
+
 .PHONY: format +format _format ~format
 format: _format ~format
 ~format: ~install $(FORMAT_TARGET)
@@ -148,25 +152,16 @@ start: ~format
 
 .PHONY: clean
 clean:
-	-@$(JEST) --clearCache
-ifeq ($(PLATFORM), win32)
+	-@$(JEST) --clearCache $(NOFAIL)
 	-@$(GIT) clean -fXd \
-		-e !/node_modules \
-		-e !/node_modules/**/* \
-		-e !/yarn.lock \
-		-e !/pnpm-lock.yaml \
-		-e !/package-lock.json
-else
-	-@$(GIT) clean -fXd \
-		-e \!/node_modules \
-		-e \!/node_modules/**/* \
-		-e \!/yarn.lock \
-		-e \!/pnpm-lock.yaml \
-		-e \!/package-lock.json
-endif
-	-@$(RM) -rf node_modules/.cache
-	-@$(RM) -rf node_modules/.make
-	-@$(RM) -rf node_modules/.tmp
+		-e $(BANG)/node_modules \
+		-e $(BANG)/node_modules/**/* \
+		-e $(BANG)/package-lock.json \
+		-e $(BANG)/pnpm-lock.yaml \
+		-e $(BANG)/yarn.lock $(NOFAIL)
+	-@rm -rf node_modules/.cache $(NOFAIL)
+	-@rm -rf node_modules/.make $(NOFAIL)
+	-@rm -rf node_modules/.tmp $(NOFAIL)
 
 .PHONY: purge
 purge: clean

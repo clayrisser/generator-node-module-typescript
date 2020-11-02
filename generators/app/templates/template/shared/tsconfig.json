@@ -13,7 +13,12 @@
     "resolveJsonModule": true,
     "sourceMap": true,
     "strict": true,
-    "target": "es2019"
+    "target": "es6",
+    "baseUrl": ".",
+    "paths": {
+      "~/*": ["src/*"],
+      "~tests/*": ["tests/*"]
+    }
   },
   "include": ["src", "tests"]
 }

@@ -39,7 +39,7 @@ export default async function prompting(yo) {
     if (keyword === '') break;
     keywords.push(keyword);
   }
-  const { install, bin, lock } = await yo.optionOrPrompt([
+  const { bin, lock } = await yo.optionOrPrompt([
     {
       type: 'confirm',
       name: 'bin',
@@ -51,12 +51,6 @@ export default async function prompting(yo) {
       name: 'lock',
       message: 'Support package-lock.json',
       default: false
-    },
-    {
-      type: 'confirm',
-      name: 'install',
-      message: 'Install dependencies',
-      default: true
     }
   ]);
   yo.answers = {
@@ -69,7 +63,6 @@ export default async function prompting(yo) {
     destination,
     githubUsername,
     homepage,
-    install,
     keywords,
     license,
     name,

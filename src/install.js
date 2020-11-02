@@ -9,17 +9,11 @@ export default async function install(yo) {
   await execa('git', ['add', '.'], {
     cwd: yo.destinationPath('')
   });
-  const installChar = yo.options.install
-    ? yo.options.install[0].toLowerCase()
-    : 'y';
-  if (!yo.answers.install || installChar === 'n' || installChar === 'f') {
-    return false;
-  }
-  return npmInstall(yo, (await getCommand()) || 'npm');
+  return npmUpgrade(yo, (await getCommand()) || 'npm');
 }
 
-export async function npmInstall(yo, npm = 'npm') {
-  await execa(npm, ['install'], {
+export async function npmUpgrade(yo, npm = 'npm') {
+  await execa(npm, ['upgrade', '--latest'], {
     cwd: yo.destinationPath(''),
     stdio: 'inherit'
   });
