@@ -82,8 +82,12 @@
     "lib"
   ],
   "jest": {
-    "testRegex": "tests(/|/.*/)[^_/]*[jt]sx?$",
-    "verbose": true
+    "testRegex": "((/(tests|__tests__)((/|/[^_.\n][^/\n]*(/[^_.\n][^/\n]+)*/)[^_.\n][^/\n]*))|((/|/.*/)(([^_.\n][^/\n]*.(spec|test))|(spec|test)))).[jt]sx?$",
+    "testEnvironment": "node",
+    "verbose": true,
+    "setupFilesAfterEnv": [
+      "<rootDir>/tests/_setup.ts"
+    ]
   },
   "jestSonar": {
     "reportPath": "node_modules/.tmp/reports",
