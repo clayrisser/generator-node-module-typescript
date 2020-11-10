@@ -3,3 +3,5 @@ describe('<%- name %>', () => {
     expect(true).toBe(true);
   });
 });
+
+export default null;
