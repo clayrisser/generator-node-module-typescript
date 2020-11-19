@@ -1,6 +1,6 @@
 {
   "name": "generator-node-module-typescript",
-  "version": "0.4.26",
+  "version": "0.4.27",
   "description": "yeoman generator for typescript node modules",
   "keywords": [
     "yeoman-generator",
@@ -30,7 +30,7 @@
     "execa": "^4.0.3",
     "generator-github-project": "^0.2.11",
     "idempotent-babel-polyfill": "^7.4.4",
-    "lodash": "^4.17.15",
+    "lodash": "^4.17.20",
     "map-series-async": "^0.0.1",
     "prettier": "^2.0.5",
     "which": "^2.0.2",

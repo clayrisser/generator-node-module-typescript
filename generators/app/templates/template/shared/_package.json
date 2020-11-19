@@ -2,6 +2,7 @@
   "name": "<%= name %>",
   "version": "<%= version %>",
   "description": "<%= description %>",<% if (keywords && keywords.length) { %>
+  "private": true,
   "keywords": [<% for (var i = 0; i < keywords.length; i++) { %>
     "<%= keywords[i] %>"<%= i < keywords.length - 1 ? ',' : '' %><% } %>
   ],<% } %>
@@ -17,6 +18,7 @@
     "url": "<%= authorUrl %>"
   },
   "files": [
+    "es",
     "lib"<% if (bin) { %>,
     "bin"<% } %>
   ],
@@ -33,7 +35,7 @@
     "clean": "make -s clean",
     "coverage": "make -s coverage",
     "format": "make -s format",
-    "inc": "npm version patch --git=false 2>/dev/null || true",
+    "inc": "make -s inc",
     "lint": "make -s lint",
     "make": "make",
     "prepare": "make -s prepare",
@@ -62,6 +64,9 @@
     "@types/jest": "^26.0.10",
     "@typescript-eslint/eslint-plugin": "^3.10.1",
     "@typescript-eslint/parser": "^3.10.1",
+    "babel-loader": "^8.2.1",
+    "babel-plugin-inline-import": "^3.0.0",
+    "babel-plugin-macros": "^2.8.0",
     "babel-plugin-module-resolver": "^4.0.0",
     "cspell": "^4.1.0",
     "eslint": "^7.7.0",
@@ -73,18 +78,27 @@
     "lockfile-lint": "^4.3.7",
     "majestic": "^1.7.0",
     "prettier": "^2.1.1",
-    "typescript": "^4.0.2"
+    "typescript": "^4.0.2",
+    "webpack": "^5.6.0",
+    "webpack-cli": "^4.2.0"
   },
   "engines": {
     "node": ">=6.0.0"
   },
   "eslintIgnore": [
+    "dist",
+    "es",
     "lib"
   ],
   "jest": {
     "testRegex": "((/(tests|__tests__)((/|/[^_.\n][^/\n]*(/[^_.\n][^/\n]+)*/)[^_.\n][^/\n]*))|((/|/.*/)(([^_.\n][^/\n]*.(spec|test))|(spec|test)))).[jt]sx?$",
     "testEnvironment": "node",
     "verbose": true,
+    "testPathIgnorePatterns": [
+      "<rootDir>/dist/",
+      "<rootDir>/es/",
+      "<rootDir>/lib/"
+    ],
     "setupFilesAfterEnv": [
       "<rootDir>/tests/_setup.ts"
     ]

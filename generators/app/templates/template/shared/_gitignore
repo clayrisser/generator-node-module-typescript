@@ -76,6 +76,7 @@ typings/
 .tern-port
 /lib<% if (!lock) { %>
 package-lock.json<% } %>
+/dist
 yarn.lock
 tsconfig.tsbuildinfo
 pnpm-lock.yaml
