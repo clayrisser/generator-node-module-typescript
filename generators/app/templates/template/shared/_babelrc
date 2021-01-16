@@ -24,6 +24,7 @@
   ],
   "plugins": [
     "babel-plugin-macros",
+    "babel-plugin-transform-typescript-metadata",
     ["@babel/plugin-proposal-decorators", { "legacy": true }],
     ["@babel/plugin-proposal-class-properties", { "loose": true }],
     "@babel/plugin-proposal-optional-chaining",
@@ -45,6 +46,7 @@
       }
     ]
   ],
+  "ignore": ["**/*.d.ts", "**/*.d.tsx", "src/@types"],
   "env": {
     "esm": {
       "presets": [
@@ -71,6 +73,8 @@
         ]
       ],
       "ignore": [
+        "**/*.d.ts",
+        "**/*.d.tsx",
         "**/*.spec.js",
         "**/*.spec.jsx",
         "**/*.spec.ts",
@@ -107,6 +111,8 @@
         ]
       ],
       "ignore": [
+        "**/*.d.ts",
+        "**/*.d.tsx",
         "**/*.spec.js",
         "**/*.spec.jsx",
         "**/*.spec.ts",

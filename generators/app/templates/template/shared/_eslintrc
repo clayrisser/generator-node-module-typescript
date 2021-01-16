@@ -5,6 +5,7 @@
   "env": {
     "browser": true
   },
+  "plugins": ["spellcheck"],
   "parserOptions": {
     "project": "./tsconfig.json",
     "ecmaFeatures": {
@@ -14,6 +15,7 @@
   "rules": {
     "@typescript-eslint/comma-dangle": ["error", "never"],
     "@typescript-eslint/indent": "off",
+    "@typescript-eslint/no-use-before-define": "off",
     "arrow-body-style": "off",
     "class-methods-use-this": "off",
     "comma-dangle": "off",
@@ -36,6 +38,19 @@
     "no-useless-constructor": "off",
     "react/jsx-props-no-spreading": "off",
     "yoda": "off",
+    "spellcheck/spell-checker": [
+      "warn",
+      {
+        "comments": true,
+        "strings": true,
+        "identifiers": true,
+        "lang": "en_US",
+        "skipWords": [],
+        "skipIfMatch": ["http?://[^s]*", "^[-\\w]+/[-\\w\\.]+$"],
+        "skipWordIfMatch": [],
+        "minLength": 3
+      }
+    ],
     "lines-between-class-members": [
       "error",
       "always",

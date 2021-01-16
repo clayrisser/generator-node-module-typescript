@@ -55,6 +55,10 @@ export default async function writing(yo) {
     yo.templatePath('template/shared/tsconfig.json'),
     yo.destinationPath('tsconfig.json')
   );
+  yo.fs.copy(
+    yo.templatePath('template/shared/tsconfig.app.json'),
+    yo.destinationPath('tsconfig.app.json')
+  );
   yo.fs.copyTpl(
     yo.templatePath('template/shared/tests'),
     yo.destinationPath('tests'),

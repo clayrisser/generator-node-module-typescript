@@ -23,7 +23,7 @@ FORMAT_TARGET := $(FORMAT_DEPS) $(DONE)/format
 LINT_DEPS := $(patsubst %,$(DONE)/_lint/%,$(shell $(GIT) ls-files 2>$(NULL) | grep -E "\.([jt]sx?)$$"))
 LINT_TARGET := $(LINT_DEPS) $(DONE)/lint
 
-SPELLCHECK_DEPS := $(patsubst %,$(DONE)/_spellcheck/%,$(shell $(GIT) ls-files 2>$(NULL)))
+SPELLCHECK_DEPS := $(patsubst %,$(DONE)/_spellcheck/%,$(shell $(GIT) ls-files 2>$(NULL) | $(GIT) ls-files | grep -E "\.(md)$$"))
 SPELLCHECK_TARGET := $(SPELLCHECK_DEPS) $(DONE)/spellcheck
 
 TEST_DEPS := $(patsubst %,$(DONE)/_test/%,$(shell $(GIT) ls-files 2>$(NULL) | grep -E "\.([jt]sx?)$$"))
@@ -127,13 +127,10 @@ build: _build ~build
 _build:
 	-@rm -rf es lib $(NOFAIL)
 lib:
-	-@rm -r node_modules/.tmp/lib node_modules/.tmp/lib $(NOFAIL)
 	@$(WEBPACK)
-	@$(BABEL) --env-name umd src -d lib --extensions '.ts,.tsx' --source-maps
-	@$(BABEL) --env-name esm src -d es --extensions '.ts,.tsx' --source-maps
-	@$(TSC) -d --emitDeclarationOnly
-	@cp -r node_modules/.tmp/lib/src/. lib $(NOFAIL)
-	@cp -r node_modules/.tmp/es/src/. es $(NOFAIL)
+	@$(BABEL) --env-name umd src -d lib --extensions '.js,.jsx,.ts,.tsx' --source-maps
+	@$(BABEL) --env-name esm src -d es --extensions '.js,.jsx,.ts,.tsx' --source-maps
+	@$(TSC) -p tsconfig.app.json -d --emitDeclarationOnly
 
 .PHONY: publish +publish
 publish: build
