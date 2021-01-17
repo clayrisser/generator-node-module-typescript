@@ -1,6 +1,6 @@
 {
   "name": "generator-node-module-typescript",
-  "version": "0.4.29",
+  "version": "0.4.30",
   "description": "yeoman generator for typescript node modules",
   "keywords": [
     "yeoman-generator",
