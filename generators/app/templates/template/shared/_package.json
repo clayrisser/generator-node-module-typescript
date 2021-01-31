@@ -3,6 +3,7 @@
   "version": "<%= version %>",
   "description": "<%= description %>",<% if (keywords && keywords.length) { %>
   "private": true,
+  "sideEffects": false,
   "keywords": [<% for (var i = 0; i < keywords.length; i++) { %>
     "<%= keywords[i] %>"<%= i < keywords.length - 1 ? ',' : '' %><% } %>
   ],<% } %>
@@ -22,6 +23,7 @@
     "lib"<% if (bin) { %>,
     "bin"<% } %>
   ],
+  "module": "es/index.js",
   "main": "lib/index.js",<% if (bin) { %>
   "bin": {
     "<%= name %>": "bin/<%= name %>.js"
