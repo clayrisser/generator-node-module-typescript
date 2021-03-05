@@ -30,12 +30,6 @@
     "@babel/plugin-proposal-optional-chaining",
     "@babel/plugin-transform-runtime",
     [
-      "babel-plugin-inline-import",
-      {
-        "extensions": [".pegjs"]
-      }
-    ],
-    [
       "babel-plugin-module-resolver",
       {
         "root": ["./"],
@@ -46,7 +40,7 @@
       }
     ]
   ],
-  "ignore": ["**/*.d.ts", "**/*.d.tsx", "src/@types"],
+  "ignore": [],
   "env": {
     "esm": {
       "presets": [

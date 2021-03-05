@@ -1,3 +1,5 @@
+import _ from 'lodash';
+
 export default async function writing(yo) {
   yo.fs.copyTpl(
     yo.templatePath('template/shared/src/**'),
@@ -6,8 +8,12 @@ export default async function writing(yo) {
   );
   if (yo.context.bin) {
     yo.fs.copy(
-      yo.templatePath('template/shared/bin'),
-      yo.destinationPath('bin')
+      yo.templatePath('template/shared/bin/bin.js'),
+      yo.destinationPath(`bin/${_.camelCase(yo.context.name)}.js`)
+    );
+    yo.fs.copy(
+      yo.templatePath('template/shared/src/bin.ts'),
+      yo.destinationPath('src/bin.ts')
     );
   }
   if (!yo.context.lock) {
@@ -17,8 +23,8 @@ export default async function writing(yo) {
     );
   }
   yo.fs.copy(
-    yo.templatePath('template/shared/_eslintrc'),
-    yo.destinationPath('.eslintrc')
+    yo.templatePath('template/shared/_eslintrc.js'),
+    yo.destinationPath('.eslintrc.js')
   );
   yo.fs.copy(
     yo.templatePath('template/shared/Makefile'),
@@ -51,9 +57,10 @@ export default async function writing(yo) {
     yo.destinationPath('webpack.config.js'),
     yo.context
   );
-  yo.fs.copy(
+  yo.fs.copyTpl(
     yo.templatePath('template/shared/tsconfig.json'),
-    yo.destinationPath('tsconfig.json')
+    yo.destinationPath('tsconfig.json'),
+    yo.context
   );
   yo.fs.copy(
     yo.templatePath('template/shared/tsconfig.app.json'),

@@ -20,13 +20,14 @@
   },
   "files": [
     "es",
+    "dist",
     "lib"<% if (bin) { %>,
     "bin"<% } %>
   ],
   "module": "es/index.js",
   "main": "lib/index.js",<% if (bin) { %>
   "bin": {
-    "<%= name %>": "bin/<%= name %>.js"
+    "<%= name %>": "bin/<%= _.camelCase(name) %>.js"
   },<% } %>
   "repository": {
     "type" : "git",
@@ -103,9 +104,6 @@
       "<rootDir>/dist/",
       "<rootDir>/es/",
       "<rootDir>/lib/"
-    ],
-    "transformIgnorePatterns": [
-      "\\.d\\.tsx?$"
     ],
     "setupFilesAfterEnv": [
       "<rootDir>/tests/_setup.ts"

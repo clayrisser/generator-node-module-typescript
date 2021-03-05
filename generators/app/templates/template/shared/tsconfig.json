@@ -22,5 +22,5 @@
       "~tests/*": ["tests/*"]
     }
   },
-  "exclude": ["node_modules", "lib"]
+  "include": ["src", "tests", ".eslintrc.js", "webpack.config.js"<% if (bin) { %>, "bin"<% } %>]
 }
