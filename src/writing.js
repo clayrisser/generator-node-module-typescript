@@ -39,8 +39,8 @@ export default async function writing(yo) {
     yo.destinationPath('.babelrc')
   );
   yo.fs.copy(
-    yo.templatePath('template/shared/_cspellrc'),
-    yo.destinationPath('.cspellrc')
+    yo.templatePath('template/shared/_cspellrc.json'),
+    yo.destinationPath('.cspellrc.json')
   );
   yo.fs.copyTpl(
     yo.templatePath('template/shared/_gitignore'),

@@ -1,6 +1,6 @@
 const fs = require('fs');
 
-const cspell = JSON.parse(fs.readFileSync('.cspellrc').toString());
+const cspell = JSON.parse(fs.readFileSync('.cspellrc.json').toString());
 
 module.exports = {
   extends: ['airbnb-typescript/base', 'prettier'],

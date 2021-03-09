@@ -78,7 +78,7 @@ spellcheck: _spellcheck ~spellcheck
 _spellcheck:
 	-@rm -rf $(DONE)/_spellcheck $(NOFAIL)
 $(DONE)/spellcheck:
-	-@$(CSPELL) --config .cspellrc $(shell $(call get_deps,spellcheck))
+	-@$(CSPELL) --config .cspellrc.json $(shell $(call get_deps,spellcheck))
 	@$(call reset_deps,spellcheck)
 	@$(call done,spellcheck)
 $(DONE)/_spellcheck/%: %
