@@ -1,4 +1,4 @@
-include silicon.mk
+include blackmagic.mk
 
 BABEL := node_modules/.bin/babel
 BABEL_NODE := node_modules/.bin/babel-node
@@ -13,32 +13,13 @@ TSC := node_modules/.bin/tsc
 WEBPACK := node_modules/.bin/webpack
 COLLECT_COVERAGE_FROM := ["src/**/*.{js,jsx,ts,tsx}"]
 
-BUILD_DEPS := $(patsubst src/%.ts,lib/%.d.ts,$(shell find src -name '*.ts' -not -name '*.d.ts')) \
-	$(patsubst src/%.tsx,lib/%.d.ts,$(shell find src -name '*.tsx'))
-BUILD_TARGET := $(BUILD_DEPS) lib
-
-FORMAT_DEPS := $(patsubst %,$(DONE)/_format/%,$(shell $(GIT) ls-files 2>$(NULL) | grep -E "\.((json)|(ya?ml)|(md)|([jt]sx?))$$"))
-FORMAT_TARGET := $(FORMAT_DEPS) $(DONE)/format
-
-LINT_DEPS := $(patsubst %,$(DONE)/_lint/%,$(shell $(GIT) ls-files 2>$(NULL) | grep -E "\.([jt]sx?)$$"))
-LINT_TARGET := $(LINT_DEPS) $(DONE)/lint
-
-SPELLCHECK_DEPS := $(patsubst %,$(DONE)/_spellcheck/%,$(shell $(GIT) ls-files 2>$(NULL) | $(GIT) ls-files | grep -E "\.(md)$$"))
-SPELLCHECK_TARGET := $(SPELLCHECK_DEPS) $(DONE)/spellcheck
-
-TEST_DEPS := $(patsubst %,$(DONE)/_test/%,$(shell $(GIT) ls-files 2>$(NULL) | grep -E "\.([jt]sx?)$$"))
-TEST_TARGET := $(TEST_DEPS) $(DONE)/test
-
 .PHONY: all
 all: build
 
-.PHONY: install +install _install ~install
-install: _install ~install
-~install: $(DONE)/install
-+install: _install $(DONE)/install
-_install:
-	-@rm -rf $(DONE)/install $(NOFAIL)
-$(DONE)/install: package.json
+ACTIONS += install
+INSTALL_DEPS := $(patsubst %,$(DONE)/_install/%,package.json)
+INSTALL_TARGET := $(INSTALL_DEPS) $(ACTION)/install
+$(ACTION)/install:
 	@$(NPM) install
 	@$(call done,install)
 
@@ -54,83 +35,54 @@ upgrade:
 inc:
 	@npm version patch --git=false $(NOFAIL)
 
-.PHONY: format +format _format ~format
-format: _format ~format
-~format: ~install $(FORMAT_TARGET)
-+format: _format $(FORMAT_TARGET)
-_format:
-	-@rm -rf $(DONE)/_format $(NOFAIL)
-$(DONE)/format:
+ACTIONS += format~install
+FORMAT_DEPS := $(patsubst %,$(DONE)/_format/%,$(shell $(GIT) ls-files 2>$(NULL) | \
+	grep -E "\.((json)|(ya?ml)|(md)|([jt]sx?))$$"))
+FORMAT_TARGET := $(FORMAT_DEPS) $(ACTION)/format
+$(ACTION)/format:
 	@for i in $$($(call get_deps,format)); do echo $$i | \
 		grep -E "\.[jt]sx?$$"; done | xargs $(ESLINT) --fix >/dev/null ||true
 	@$(PRETTIER) --write $(shell $(call get_deps,format))
-	@$(call reset_deps,format)
 	@$(call done,format)
-$(DONE)/_format/%: %
-	-@rm $(DONE)/format $(NOFAIL)
-	@$(call add_dep,format,$<)
-	@$(call add_cache,$@)
 
-.PHONY: spellcheck +spellcheck _spellcheck ~spellcheck
-spellcheck: _spellcheck ~spellcheck
-~spellcheck: ~format $(SPELLCHECK_TARGET)
-+spellcheck: _spellcheck $(SPELLCHECK_TARGET)
-_spellcheck:
-	-@rm -rf $(DONE)/_spellcheck $(NOFAIL)
-$(DONE)/spellcheck:
+ACTIONS += spellcheck~format
+SPELLCHECK_DEPS := $(patsubst %,$(DONE)/_spellcheck/%,$(shell $(GIT) ls-files 2>$(NULL) | \
+	$(GIT) ls-files | grep -E "\.(md)$$"))
+SPELLCHECK_TARGET := $(SPELLCHECK_DEPS) $(ACTION)/spellcheck
+$(ACTION)/spellcheck:
 	-@$(CSPELL) --config .cspellrc.json $(shell $(call get_deps,spellcheck))
-	@$(call reset_deps,spellcheck)
 	@$(call done,spellcheck)
-$(DONE)/_spellcheck/%: %
-	-@rm $(DONE)/spellcheck $(NOFAIL)
-	@$(call add_dep,spellcheck,$<)
-	@$(call add_cache,$@)
 
-.PHONY: lint +lint _lint ~lint
-lint: _lint ~lint
-~lint: ~spellcheck $(LINT_TARGET)
-+lint: _lint $(LINT_TARGET)
-_lint:
-	-@rm -rf $(DONE)/_lint $(NOFAIL)
-$(DONE)/lint:
+ACTIONS += lint~spellcheck
+LINT_DEPS := $(patsubst %,$(DONE)/_lint/%,$(shell $(GIT) ls-files 2>$(NULL) | \
+	grep -E "\.([jt]sx?)$$"))
+LINT_TARGET := $(LINT_DEPS) $(ACTION)/lint
+$(ACTION)/lint:
 #	-@$(LOCKFILE_LINT) --type npm --path package-lock.json --validate-https
 	-@$(ESLINT) -f json -o node_modules/.tmp/eslintReport.json $(shell $(call get_deps,lint)) $(NOFAIL)
 	-@$(ESLINT) $(shell $(call get_deps,lint))
-	@$(call reset_deps,lint)
 	@$(call done,lint)
-$(DONE)/_lint/%: %
-	-@rm $(DONE)/lint $(NOFAIL)
-	@$(call add_dep,lint,$<)
-	@$(call add_cache,$@)
 
-.PHONY: test +test _test ~test
-test: _test ~test
-~test: ~lint $(TEST_TARGET)
-+test: _test $(TEST_TARGET)
-_test:
-	-@rm -rf $(DONE)/_test $(NOFAIL)
-$(DONE)/test:
+ACTIONS += test~lint
+TEST_DEPS := $(patsubst %,$(DONE)/_test/%,$(shell $(GIT) ls-files 2>$(NULL) | \
+	grep -E "\.([jt]sx?)$$"))
+TEST_TARGET := $(TEST_DEPS) $(ACTION)/test
+$(ACTION)/test:
 	-@$(JEST) --json --outputFile=node_modules/.tmp/jestTestResults.json --coverage \
 		--coverageDirectory=node_modules/.tmp/coverage --testResultsProcessor=jest-sonar-reporter \
 		--collectCoverageFrom='$(COLLECT_COVERAGE_FROM)' --findRelatedTests $(shell $(call get_deps,test))
-	@$(call reset_deps,test)
 	@$(call done,test)
-$(DONE)/_test/%: %
-	-@rm $(DONE)/test $(NOFAIL)
-	@$(call add_dep,test,$<)
-	@$(call add_cache,$@)
 
-.PHONY: build +build _build ~build
-build: _build ~build
-~build: ~test $(BUILD_TARGET)
-+build: _build $(BUILD_TARGET)
-_build:
-	-@rm -rf es lib $(NOFAIL)
-lib:
+ACTIONS += build~test
+BUILD_DEPS := $(patsubst %,$(DONE)/_build/%,$(shell find src -name '*.ts' -not -name '*.d.ts')) \
+	$(patsubst src/%.tsx,lib/%.d.ts,$(shell find src -name '*.tsx'))
+BUILD_TARGET := $(BUILD_DEPS) $(ACTION)/build
+$(ACTION)/build:
 	@$(WEBPACK)
 	@$(BABEL) --env-name umd src -d lib --extensions '.js,.jsx,.ts,.tsx' --source-maps
 	@$(BABEL) --env-name esm src -d es --extensions '.js,.jsx,.ts,.tsx' --source-maps
 	@$(TSC) -p tsconfig.app.json -d --emitDeclarationOnly
+	@$(call done,build)
 
 .PHONY: publish +publish
 publish: build
@@ -170,6 +122,7 @@ start: ~format
 
 .PHONY: clean
 clean:
+	-@$(call clean)
 	-@$(JEST) --clearCache $(NOFAIL)
 	-@$(GIT) clean -fXd \
 		-e $(BANG)/node_modules \
@@ -189,9 +142,6 @@ purge: clean
 count:
 	@$(CLOC) $(shell $(GIT) ls-files)
 
-.PHONY: report
-report: spellcheck lint test
-	@
-
+include $(patsubst %,$(_ACTIONS)/%,$(ACTIONS))
 %:
 	@

@@ -31,8 +31,8 @@ export default async function writing(yo) {
     yo.destinationPath('Makefile')
   );
   yo.fs.copy(
-    yo.templatePath('template/shared/silicon.mk'),
-    yo.destinationPath('silicon.mk')
+    yo.templatePath('template/shared/blackmagic.mk'),
+    yo.destinationPath('blackmagic.mk')
   );
   yo.fs.copy(
     yo.templatePath('template/shared/_babelrc'),
