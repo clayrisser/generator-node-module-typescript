@@ -66,15 +66,20 @@ BUILD_DEPS := $(call deps,build,$(shell $(GIT) ls-files 2>$(NULL) | \
 	grep -E "\.([jt]sx?)$$"))
 BUILD_TARGET := $(BUILD_DEPS) $(ACTION)/build
 $(ACTION)/build: es/index.js lib/index.js ;
+	@if [ ! -f $(MAKE_CACHE)/^build ]; then \
+		$(MAKE) -s $(ACTION)/^build; \
+	fi
+	-@rm -f $(ACTION)/^build $(NOFAIL)
 es/index.js:
-	@$(MAKE) -s ^build
+	@$(MAKE) -s $(ACTION)/^build
 lib/index.js:
-	@$(MAKE) -s ^build
-^build:
+	@$(MAKE) -s $(ACTION)/^build
+$(ACTION)/^build:
 	@$(WEBPACK)
 	@$(BABEL) --env-name umd src -d lib --extensions '.js,.jsx,.ts,.tsx' --source-maps
 	@$(BABEL) --env-name esm src -d es --extensions '.js,.jsx,.ts,.tsx' --source-maps
 	@$(TSC) -p tsconfig.app.json -d --emitDeclarationOnly
+	@$(call cache,$@)
 	@$(call done,build)
 
 .PHONY: prepare
@@ -99,7 +104,7 @@ publish: build
 	@$(NPM) publish
 
 .PHONY: pack +pack
-pack: ~build
+pack: build
 	@$(MAKE) -s +pack
 +pack:
 	@$(NPM) pack
