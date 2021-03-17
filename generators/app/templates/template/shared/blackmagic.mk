@@ -90,6 +90,10 @@ define cache
 	mkdir -p $$(echo $1 | sed 's/\/[^\/]*$$//g') && touch -m $1
 endef
 
+define clear_cache
+	rm -rf $1 $(NOFAIL)
+endef
+
 define deps
 	$(patsubst %,$(DONE)/_$1/%,$2)
 endef
@@ -112,9 +116,9 @@ ifneq ($$({{ACTION_UPPER}}_READY),true)
 ~{{ACTION}}: {{ACTION_DEPENDENCY}} $$({{ACTION_UPPER}}_TARGET)
 +{{ACTION}}: _{{ACTION}} $$({{ACTION_UPPER}}_TARGET)
 _{{ACTION}}:
-	-@rm -rf $(DONE)/_{{ACTION}} $(NOFAIL)
-$(DONE)/_{{ACTION}}/%: %
-	-@rm $(DONE)/{{ACTION}} $(NOFAIL)
+	@$$(call clear_cache,$$(DONE)/_{{ACTION}})
+$$(DONE)/_{{ACTION}}/%: %
+	@$$(call clear_cache,$$(DONE)/{{ACTION}})
 	@$$(call add_dep,{{ACTION}},$$<)
 	@$$(call cache,$$@)
 endif

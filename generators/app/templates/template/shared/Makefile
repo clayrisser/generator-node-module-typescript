@@ -69,7 +69,7 @@ $(ACTION)/build: es/index.js lib/index.js ;
 	@if [ ! -f $(MAKE_CACHE)/^build ]; then \
 		$(MAKE) -s $(ACTION)/^build; \
 	fi
-	-@rm -f $(ACTION)/^build $(NOFAIL)
+	@$(call clear_cache,$(ACTION)/^build)
 es/index.js:
 	@$(MAKE) -s $(ACTION)/^build
 lib/index.js:
