@@ -17,7 +17,7 @@
 
 PLATFORM := $(shell node -e "process.stdout.write(process.platform)")
 
-ifeq ($(PLATFORM), win32)
+ifeq ($(PLATFORM),win32)
   BANG := !
 	MAKE := make
 	NULL := nul
@@ -26,7 +26,7 @@ else
 	BANG := \!
 	NULL := /dev/null
 	SHELL := $(shell bash --version >$(NULL) 2>&1 && echo bash|| echo sh)
-ifeq ($(PLATFORM), linux)
+ifeq ($(PLATFORM),linux)
 	TMP_RAM ?= /dev/shm
 endif
 endif
