@@ -65,10 +65,10 @@ ACTIONS += build~test
 BUILD_DEPS := $(call deps,build,$(shell $(GIT) ls-files 2>$(NULL) | \
 	grep -E "\.([jt]sx?)$$"))
 BUILD_TARGET := $(BUILD_DEPS) $(ACTION)/build
-$(ACTION)/build: es lib ;
-es:
+$(ACTION)/build: es/index.js lib/index.js ;
+es/index.js:
 	@$(MAKE) -s ^build
-lib:
+lib/index.js:
 	@$(MAKE) -s ^build
 ^build:
 	@$(WEBPACK)
