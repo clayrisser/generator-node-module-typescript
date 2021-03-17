@@ -37,8 +37,6 @@ GIT ?= $(shell git --version >$(NULL) 2>&1 && echo git|| echo true)
 NPM ?= $(shell pnpm --version >$(NULL) 2>&1 && echo pnpm|| (yarn --version >$(NULL) 2>&1 && echo yarn|| echo npm))
 NOFAIL := 2>$(NULL)|| true
 
-DEPSLIST ?= node_modules/.bin/depslist
-
 .EXPORT_ALL_VARIABLES:
 
 PROJECT_ROOT ?= $(shell $(GIT) rev-parse --show-superproject-working-tree)
@@ -49,23 +47,30 @@ ifeq ($(PROJECT_ROOT),)
 	PROJECT_ROOT := $(CWD)
 endif
 
-MAKE_CACHE ?= node_modules/.make
+MAKE_CACHE ?= $(PROJECT_ROOT)/node_modules/.make
 _ACTIONS := $(MAKE_CACHE)/actions
 DONE := $(MAKE_CACHE)/done
 DEPS := $(MAKE_CACHE)/deps
 ACTION := $(DONE)
 
 ifneq ($(TMP_RAM),)
-ifeq ($(wildcard $(PROJECT_ROOT)/$(MAKE_CACHE)),)
-_RUN := $(shell mkdir -p $(MAKE_CACHE) && rm -rf $(MAKE_CACHE) && \
-	mkdir -p $(TMP_RAM)$(PROJECT_ROOT)/$(MAKE_CACHE) && \
-	ln -s $(TMP_RAM)$(PROJECT_ROOT)/$(MAKE_CACHE) $(PROJECT_ROOT)/$(MAKE_CACHE))
+define allocate_ram
+	$(shell rm -rf $(MAKE_CACHE) $(NOFAIL) && \
+		mkdir -p $(MAKE_CACHE) && rm -rf $(MAKE_CACHE) && \
+		mkdir -p $(TMP_RAM)$(MAKE_CACHE) && \
+		ln -s $(TMP_RAM)$(MAKE_CACHE) $(MAKE_CACHE))
+endef
+ifeq ($(wildcard $(MAKE_CACHE)),)
+	_RUN := $(call allocate_ram)
+endif
+ifeq ($(wildcard $(TMP_RAM)$(MAKE_CACHE)),)
+	_RUN := $(call allocate_ram)
 endif
 endif
 _RUN := $(shell mkdir -p $(_ACTIONS) $(DEPS) $(DONE))
 
 define done
-	@$(call reset_deps,$1)
+	$(call reset_deps,$1)
 	mkdir -p $(DONE) && touch -m $(DONE)/$1
 endef
 
@@ -85,9 +90,14 @@ define cache
 	mkdir -p $$(echo $1 | sed 's/\/[^\/]*$$//g') && touch -m $1
 endef
 
+define deps
+	$(patsubst %,$(DONE)/_$1/%,$2)
+endef
+
 ifneq ($(TMP_RAM),)
 define clean
-	rm -rf $(TMP_RAM)$(PROJECT_ROOT)/$(MAKE_CACHE) $(NOFAIL)
+	rm -rf $(TMP_RAM)$(MAKE_CACHE) $(NOFAIL)
+	rm -rf $(MAKE_CACHE) $(NOFAIL)
 endef
 else
 define clean

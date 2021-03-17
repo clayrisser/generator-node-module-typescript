@@ -23,30 +23,18 @@ $(ACTION)/install:
 	@$(NPM) install
 	@$(call done,install)
 
-.PHONY: prepare
-prepare:
-	@
-
-.PHONY: upgrade
-upgrade:
-	@$(NPM) upgrade --latest
-
-.PHONY: inc
-inc:
-	@npm version patch --git=false $(NOFAIL)
-
 ACTIONS += format~install
-FORMAT_DEPS := $(patsubst %,$(DONE)/_format/%,$(shell $(GIT) ls-files 2>$(NULL) | \
+FORMAT_DEPS := $(call deps,format,$(shell $(GIT) ls-files 2>$(NULL) | \
 	grep -E "\.((json)|(ya?ml)|(md)|([jt]sx?))$$"))
 FORMAT_TARGET := $(FORMAT_DEPS) $(ACTION)/format
 $(ACTION)/format:
-	@for i in $$($(call get_deps,format)); do echo $$i | \
-		grep -E "\.[jt]sx?$$"; done | xargs $(ESLINT) --fix >/dev/null ||true
+#	@for i in $$($(call get_deps,format)); do echo $$i | \
+#		grep -E "\.[jt]sx?$$"; done | xargs $(ESLINT) --fix >/dev/null ||true
 	@$(PRETTIER) --write $(shell $(call get_deps,format))
 	@$(call done,format)
 
 ACTIONS += spellcheck~format
-SPELLCHECK_DEPS := $(patsubst %,$(DONE)/_spellcheck/%,$(shell $(GIT) ls-files 2>$(NULL) | \
+SPELLCHECK_DEPS := $(call deps,spellcheck,$(shell $(GIT) ls-files 2>$(NULL) | \
 	$(GIT) ls-files | grep -E "\.(md)$$"))
 SPELLCHECK_TARGET := $(SPELLCHECK_DEPS) $(ACTION)/spellcheck
 $(ACTION)/spellcheck:
@@ -54,7 +42,7 @@ $(ACTION)/spellcheck:
 	@$(call done,spellcheck)
 
 ACTIONS += lint~spellcheck
-LINT_DEPS := $(patsubst %,$(DONE)/_lint/%,$(shell $(GIT) ls-files 2>$(NULL) | \
+LINT_DEPS := $(call deps,lint,$(shell $(GIT) ls-files 2>$(NULL) | \
 	grep -E "\.([jt]sx?)$$"))
 LINT_TARGET := $(LINT_DEPS) $(ACTION)/lint
 $(ACTION)/lint:
@@ -64,7 +52,7 @@ $(ACTION)/lint:
 	@$(call done,lint)
 
 ACTIONS += test~lint
-TEST_DEPS := $(patsubst %,$(DONE)/_test/%,$(shell $(GIT) ls-files 2>$(NULL) | \
+TEST_DEPS := $(call deps,test,$(shell $(GIT) ls-files 2>$(NULL) | \
 	grep -E "\.([jt]sx?)$$"))
 TEST_TARGET := $(TEST_DEPS) $(ACTION)/test
 $(ACTION)/test:
@@ -74,15 +62,35 @@ $(ACTION)/test:
 	@$(call done,test)
 
 ACTIONS += build~test
-BUILD_DEPS := $(patsubst %,$(DONE)/_build/%,$(shell find src -name '*.ts' -not -name '*.d.ts')) \
-	$(patsubst src/%.tsx,lib/%.d.ts,$(shell find src -name '*.tsx'))
+BUILD_DEPS := $(call deps,build,$(shell $(GIT) ls-files 2>$(NULL) | \
+	grep -E "\.([jt]sx?)$$"))
 BUILD_TARGET := $(BUILD_DEPS) $(ACTION)/build
-$(ACTION)/build:
+$(ACTION)/build: es lib ;
+es:
+	@$(MAKE) -s ^build
+lib:
+	@$(MAKE) -s ^build
+^build:
 	@$(WEBPACK)
 	@$(BABEL) --env-name umd src -d lib --extensions '.js,.jsx,.ts,.tsx' --source-maps
 	@$(BABEL) --env-name esm src -d es --extensions '.js,.jsx,.ts,.tsx' --source-maps
 	@$(TSC) -p tsconfig.app.json -d --emitDeclarationOnly
 	@$(call done,build)
+
+.PHONY: prepare
+prepare: ;
+
+.PHONY: upgrade
+upgrade:
+	@$(NPM) upgrade --latest
+
+.PHONY: inc
+inc:
+	@npm version patch --git=false $(NOFAIL)
+
+.PHONY: count
+count:
+	@$(CLOC) $(shell $(GIT) ls-files)
 
 .PHONY: publish +publish
 publish: build
@@ -91,7 +99,7 @@ publish: build
 	@$(NPM) publish
 
 .PHONY: pack +pack
-pack: build
+pack: ~build
 	@$(MAKE) -s +pack
 +pack:
 	@$(NPM) pack
@@ -131,17 +139,16 @@ clean:
 		-e $(BANG)/pnpm-lock.yaml \
 		-e $(BANG)/yarn.lock $(NOFAIL)
 	-@rm -rf node_modules/.cache $(NOFAIL)
-	-@rm -rf node_modules/.make $(NOFAIL)
 	-@rm -rf node_modules/.tmp $(NOFAIL)
 
 .PHONY: purge
 purge: clean
 	-@$(GIT) clean -fXd
 
-.PHONY: count
-count:
-	@$(CLOC) $(shell $(GIT) ls-files)
-
 include $(patsubst %,$(_ACTIONS)/%,$(ACTIONS))
+
++%:
+	@make -s $(shell echo $@ | sed 's/^\+//g')
+
 %:
-	@
+	@echo $@ is not a valid command && exit 1
