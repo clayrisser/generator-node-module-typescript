@@ -15,10 +15,24 @@
 #
 # - Clay Risser
 
-PLATFORM := $(shell node -e "process.stdout.write(process.platform)")
+CWD := $(shell pwd)
+export NO_CHECK ?= false
+export MAKE_CACHE ?= $(CWD)/.make
+export _ACTIONS := $(MAKE_CACHE)/actions
+export CHECK := $(MAKE_CACHE)/check
+export DEPS := $(MAKE_CACHE)/deps
+export DONE := $(MAKE_CACHE)/done
+export ENVS := $(MAKE_CACHE)/envs
+export ACTION := $(DONE)
 
+.EXPORT_ALL_VARIABLES:
+
+-include $(ENVS)
+
+export PLATFORM := $(shell node -e "process.stdout.write(process.platform)")
+export NIX_ENV := $(shell which sed | grep -qE "^/nix/store" && echo true|| echo false)
 ifeq ($(PLATFORM),win32)
-  BANG := !
+	BANG := !
 	MAKE := make
 	NULL := nul
 	SHELL := cmd.exe
@@ -26,18 +40,35 @@ else
 	BANG := \!
 	NULL := /dev/null
 	SHELL := $(shell bash --version >$(NULL) 2>&1 && echo bash|| echo sh)
+endif
+ifeq ($(NIX_ENV),true)
+	export GREP ?= grep
+	export SED ?= sed
+else
+ifeq ($(PLATFORM),darwin)
+	export GREP ?= ggrep
+	export SED ?= gsed
+else
+	export GREP ?= grep
+	export SED ?= sed
+endif
+endif
 ifeq ($(PLATFORM),linux)
-	TMP_RAM ?= /dev/shm
+	export NUMPROC ?= $(shell grep -c ^processor /proc/cpuinfo)
+	export OPEN ?= xdg-open
+else
+	export OPEN ?= open
 endif
+ifeq ($(PLATFORM),darwin)
+	export NUMPROC ?= $(shell sysctl hw.ncpu | awk '{print $$2}')
 endif
+export NUMPROC ?= 1
+# MAKEFLAGS += "-j $(NUMPROC)"
 
-CWD ?= $(shell pwd)
-CD ?= cd
-GIT ?= $(shell git --version >$(NULL) 2>&1 && echo git|| echo true)
-NPM ?= $(shell pnpm --version >$(NULL) 2>&1 && echo pnpm|| (yarn --version >$(NULL) 2>&1 && echo yarn|| echo npm))
-NOFAIL := 2>$(NULL)|| true
-
-.EXPORT_ALL_VARIABLES:
+export CD ?= cd
+export GIT ?= $(shell git --version >$(NULL) 2>&1 && echo git|| echo true)
+export NPM ?= $(shell pnpm --version >$(NULL) 2>&1 && echo pnpm|| (yarn --version >$(NULL) 2>&1 && echo yarn|| echo npm))
+export NOFAIL := 2>$(NULL)|| true
 
 PROJECT_ROOT ?= $(shell $(GIT) rev-parse --show-superproject-working-tree)
 ifeq ($(PROJECT_ROOT),)
@@ -47,47 +78,41 @@ ifeq ($(PROJECT_ROOT),)
 	PROJECT_ROOT := $(CWD)
 endif
 
-MAKE_CACHE ?= $(PROJECT_ROOT)/node_modules/.make
-_ACTIONS := $(MAKE_CACHE)/actions
-DONE := $(MAKE_CACHE)/done
-DEPS := $(MAKE_CACHE)/deps
-ACTION := $(DONE)
+CHILD := false
+ifneq ($(PROJECT_ROOT),$(CWD))
+ifeq ($(PARENT),true)
+	CHILD := true
+endif
+endif
 
-ifneq ($(TMP_RAM),)
-define allocate_ram
-	$(shell rm -rf $(MAKE_CACHE) $(NOFAIL) && \
-		mkdir -p $(MAKE_CACHE) && rm -rf $(MAKE_CACHE) && \
-		mkdir -p $(TMP_RAM)$(MAKE_CACHE) && \
-		ln -s $(TMP_RAM)$(MAKE_CACHE) $(MAKE_CACHE))
-endef
-ifeq ($(wildcard $(MAKE_CACHE)),)
-	_RUN := $(call allocate_ram)
+.EXPORT_ALL_VARIABLES:
+
+ifeq ($(MAKE_CACHE),$(PROJECT_ROOT)/.env/.make)
+	IS_PROJECT := true
 endif
-ifeq ($(wildcard $(TMP_RAM)$(MAKE_CACHE)),)
-	_RUN := $(call allocate_ram)
-endif
-endif
+
 _RUN := $(shell mkdir -p $(_ACTIONS) $(DEPS) $(DONE))
 
 define done
 	$(call reset_deps,$1)
-	mkdir -p $(DONE) && touch -m $(DONE)/$1
+	touch -m $(DONE)/$1
+	rm -f $(DONE)/+$1 $(NOFAIL)
 endef
 
 define add_dep
-	mkdir -p $(MAKE_CACHE)/deps && echo $2 >> $(MAKE_CACHE)/deps/$1
+	echo $2 >> $(DEPS)/$1
 endef
 
 define reset_deps
-	rm $(MAKE_CACHE)/deps/$1 $(NOFAIL)
+	rm -f $(DEPS)/$1 $(NOFAIL)
 endef
 
 define get_deps
-	cat $(MAKE_CACHE)/deps/$1 $(NOFAIL)
+	cat $(DEPS)/$1 $(NOFAIL)
 endef
 
 define cache
-	mkdir -p $$(echo $1 | sed 's/\/[^\/]*$$//g') && touch -m $1
+	mkdir -p $$(echo $1 | $(SED) 's/\/[^\/]*$$//g') && touch -m $1
 endef
 
 define clear_cache
@@ -98,37 +123,86 @@ define deps
 	$(patsubst %,$(DONE)/_$1/%,$2)
 endef
 
-ifneq ($(TMP_RAM),)
 define clean
-	rm -rf $(TMP_RAM)$(MAKE_CACHE) $(NOFAIL)
 	rm -rf $(MAKE_CACHE) $(NOFAIL)
 endef
-else
-define clean
+
+define reset_envs
+	rm -rf $(ENVS) $(NOFAIL)
 endef
-endif
 
 define ACTION_TEMPLATE
-ifneq ($$({{ACTION_UPPER}}_READY),true)
-{{ACTION_UPPER}}_READY := true
-.PHONY: {{ACTION}} +{{ACTION}} _{{ACTION}} ~{{ACTION}}
-{{ACTION}}: _{{ACTION}} ~{{ACTION}}
-~{{ACTION}}: {{ACTION_DEPENDENCY}} $$({{ACTION_UPPER}}_TARGET)
-+{{ACTION}}: _{{ACTION}} $$({{ACTION_UPPER}}_TARGET)
-_{{ACTION}}:
+ifeq ($$(CHILD),true)
+ifneq ($$(CHILD_{{ACTION_UPPER}}_READY),true)
+CHILD_{{ACTION_UPPER}}_READY = true
+.PHONY: child_{{ACTION}} child_+{{ACTION}} child__{{ACTION}} child_~{{ACTION}}
+child_{{ACTION}}: child__{{ACTION}} child_~{{ACTION}}
+child_~{{ACTION}}: | $$(CHECK) {{CHILD_ACTION_DEPENDENCY}} $$({{ACTION_UPPER}}_DEPS) \
+	$$({{ACTION_UPPER}}_TARGET) $$(ACTION)/{{ACTION}}
+child_+{{ACTION}}: | $$(CHECK) child__{{ACTION}} $$({{ACTION_UPPER}}_DEPS) \
+	$$({{ACTION_UPPER}}_TARGET) $$(ACTION)/{{ACTION}}
+child__{{ACTION}}:
+	@touch -m $$(DONE)/+{{ACTION}}
 	@$$(call clear_cache,$$(DONE)/_{{ACTION}})
+	@$$(call clear_cache,$$(DONE)/{{ACTION}})
 $$(DONE)/_{{ACTION}}/%: %
 	@$$(call clear_cache,$$(DONE)/{{ACTION}})
 	@$$(call add_dep,{{ACTION}},$$<)
 	@$$(call cache,$$@)
 endif
+else
+ifneq ($$({{ACTION_UPPER}}_READY),true)
+{{ACTION_UPPER}}_READY = true
+.PHONY: {{ACTION}} +{{ACTION}} _{{ACTION}} ~{{ACTION}}
+{{ACTION}}: _{{ACTION}} ~{{ACTION}}
+~{{ACTION}}: | $$(CHECK) {{ACTION_DEPENDENCY}} $$({{ACTION_UPPER}}_DEPS) \
+	$$({{ACTION_UPPER}}_TARGET) $$(ACTION)/{{ACTION}}
++{{ACTION}}: | $$(CHECK) _{{ACTION}} $$({{ACTION_UPPER}}_DEPS) \
+	$$({{ACTION_UPPER}}_TARGET) $$(ACTION)/{{ACTION}}
+_{{ACTION}}:
+	@touch -m $$(DONE)/+{{ACTION}}
+	@$$(call clear_cache,$$(DONE)/_{{ACTION}})
+	@$$(call clear_cache,$$(DONE)/{{ACTION}})
+$$(DONE)/_{{ACTION}}/%: %
+	@$$(call clear_cache,$$(DONE)/{{ACTION}})
+	@$$(call add_dep,{{ACTION}},$$<)
+	@$$(call cache,$$@)
+endif
+endif
 endef
 
+.PHONY: $(_ACTIONS)/%
 $(_ACTIONS)/%:
-	@ACTION_BLOCK=$(shell echo $@ | grep -oE '[^\/]+$$') && \
-		ACTION=$$(echo $$ACTION_BLOCK | grep -oE '^[^~]+') && \
-		ACTION_DEPENDENCY=$$(echo $$ACTION_BLOCK | grep -oE '~[^~]+$$' $(NOFAIL)) && \
+	@ACTION_BLOCK=$(shell echo $@ | $(GREP) -oE '[^\/]+$$') && \
+		ACTION=$$(echo $$ACTION_BLOCK | $(GREP) -oE '^[^~]+') && \
+		ACTION_DEPENDENCY=$$(echo $$ACTION_BLOCK | $(GREP) -oE '~[^~]+$$' $(NOFAIL)) && \
+		CHILD_ACTION_DEPENDENCY=$$([ "$$ACTION_DEPENDENCY" = "" ] && echo ""|| echo "child_$$ACTION_DEPENDENCY") && \
 		ACTION_UPPER=$$(echo $$ACTION | tr '[:lower:]' '[:upper:]') && \
-		echo "$${ACTION_TEMPLATE}" | sed "s/{{ACTION}}/$${ACTION}/g" | \
-		sed "s/{{ACTION_DEPENDENCY}}/$${ACTION_DEPENDENCY}/g" | \
-		sed "s/{{ACTION_UPPER}}/$${ACTION_UPPER}/g" > $@
+		echo "$${ACTION_TEMPLATE}" | $(SED) "s/{{ACTION}}/$${ACTION}/g" | \
+		$(SED) "s/{{ACTION_DEPENDENCY}}/$${ACTION_DEPENDENCY}/g" | \
+		$(SED) "s/{{CHILD_ACTION_DEPENDENCY}}/$${CHILD_ACTION_DEPENDENCY}/g" | \
+		$(SED) "s/{{ACTION_UPPER}}/$${ACTION_UPPER}/g" > $@
+
+$(CHECK): Makefile
+ifneq ($(NO_CHECK),true)
+	@rm -rf $(MAKE_CACHE)
+endif
+	@mkdir -p $(_ACTIONS) $(DEPS) $(DONE)
+	@touch -m $(CHECK)
+
+$(ENVS): Makefile
+	@echo "make will be faster next time :)"
+	@rm -rf $@
+	@for e in $$CACHE_ENVS; do \
+		echo "export $$e := $$(eval "echo \$$$$e")" >> $@; \
+	done
+
+CACHE_ENVS += \
+	GIT \
+	GREP \
+	NIX_ENV \
+	NPM \
+	NUMPROC \
+	PLATFORM \
+	PROJECT_ROOT \
+	SED

@@ -153,7 +153,19 @@ purge: clean
 include $(patsubst %,$(_ACTIONS)/%,$(ACTIONS))
 
 +%:
-	@make -s $(shell echo $@ | sed 's/^\+//g')
+	@$(MAKE) -e -s $(shell echo $@ | $(SED) 's/^\+//g')
 
-%:
-	@echo $@ is not a valid command && exit 1
+%: ;
+
+CACHE_ENVS += \
+	BABEL \
+	BABEL_NODE \
+	CLOC \
+	CSPELL \
+	ESLINT \
+	JEST \
+	LOCKFILE_LINT \
+	MAJESTIC \
+	PRETTIER \
+	TSC \
+	WEBPACK
