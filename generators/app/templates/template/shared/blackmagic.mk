@@ -87,10 +87,6 @@ endif
 
 .EXPORT_ALL_VARIABLES:
 
-ifeq ($(MAKE_CACHE),$(PROJECT_ROOT)/.env/.make)
-	IS_PROJECT := true
-endif
-
 _RUN := $(shell mkdir -p $(_ACTIONS) $(DEPS) $(DONE))
 
 define done
@@ -145,7 +141,7 @@ child__{{ACTION}}:
 	@touch -m $$(DONE)/+{{ACTION}}
 	@$$(call clear_cache,$$(DONE)/_{{ACTION}})
 	@$$(call clear_cache,$$(DONE)/{{ACTION}})
-$$(DONE)/_{{ACTION}}/%: %
+$$(DONE)/_{{ACTION}}/*: %
 	@$$(call clear_cache,$$(DONE)/{{ACTION}})
 	@$$(call add_dep,{{ACTION}},$$<)
 	@$$(call cache,$$@)
@@ -163,7 +159,7 @@ _{{ACTION}}:
 	@touch -m $$(DONE)/+{{ACTION}}
 	@$$(call clear_cache,$$(DONE)/_{{ACTION}})
 	@$$(call clear_cache,$$(DONE)/{{ACTION}})
-$$(DONE)/_{{ACTION}}/%: %
+$$(DONE)/_{{ACTION}}/*: %
 	@$$(call clear_cache,$$(DONE)/{{ACTION}})
 	@$$(call add_dep,{{ACTION}},$$<)
 	@$$(call cache,$$@)
@@ -185,13 +181,15 @@ $(_ACTIONS)/%:
 
 $(CHECK): Makefile
 ifneq ($(NO_CHECK),true)
+	@echo "🔌 checking dependencies"
+	@echo "💣 busted cache"
 	@rm -rf $(MAKE_CACHE)
 endif
 	@mkdir -p $(_ACTIONS) $(DEPS) $(DONE)
 	@touch -m $(CHECK)
 
 $(ENVS): Makefile
-	@echo "make will be faster next time :)"
+	@echo "🗲  make will be faster next time"
 	@rm -rf $@
 	@for e in $$CACHE_ENVS; do \
 		echo "export $$e := $$(eval "echo \$$$$e")" >> $@; \

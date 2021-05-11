@@ -1,3 +1,5 @@
+export MAKE_CACHE := $(shell pwd)/node_modules/.make
+export PARENT := true
 include blackmagic.mk
 
 BABEL := node_modules/.bin/babel
@@ -150,7 +152,7 @@ clean:
 purge: clean
 	-@$(GIT) clean -fXd
 
-include $(patsubst %,$(_ACTIONS)/%,$(ACTIONS))
+-include $(patsubst %,$(_ACTIONS)/%,$(ACTIONS))
 
 +%:
 	@$(MAKE) -e -s $(shell echo $@ | $(SED) 's/^\+//g')
