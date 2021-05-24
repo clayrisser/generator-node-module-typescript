@@ -2,17 +2,18 @@ export MAKE_CACHE := $(shell pwd)/node_modules/.make
 export PARENT := true
 include blackmagic.mk
 
-BABEL := node_modules/.bin/babel
-BABEL_NODE := node_modules/.bin/babel-node
-CLOC := node_modules/.bin/cloc
-CSPELL := node_modules/.bin/cspell
-ESLINT := node_modules/.bin/eslint
-JEST := node_modules/.bin/jest
-LOCKFILE_LINT := node_modules/.bin/lockfile-lint
-MAJESTIC := node_modules/.bin/majestic
-PRETTIER := node_modules/.bin/prettier
-TSC := node_modules/.bin/tsc
-WEBPACK := node_modules/.bin/webpack
+BABEL ?= node_modules/.bin/babel
+BABEL_NODE ?= node_modules/.bin/babel-node
+CLOC ?= node_modules/.bin/cloc
+CSPELL ?= node_modules/.bin/cspell
+ESLINT ?= node_modules/.bin/eslint
+JEST ?= node_modules/.bin/jest
+LOCKFILE_LINT ?= node_modules/.bin/lockfile-lint
+MAJESTIC ?= node_modules/.bin/majestic
+PRETTIER ?= node_modules/.bin/prettier
+TMP_DIR ?= node_modules/.tmp
+TSC ?= node_modules/.bin/tsc
+WEBPACK ?= node_modules/.bin/webpack
 COLLECT_COVERAGE_FROM := ["src/**/*.{js,jsx,ts,tsx}"]
 
 .PHONY: all
@@ -40,6 +41,8 @@ SPELLCHECK_DEPS := $(call deps,spellcheck,$(shell $(GIT) ls-files 2>$(NULL) | \
 	$(GIT) ls-files | grep -E "\.(md)$$"))
 SPELLCHECK_TARGET := $(SPELLCHECK_DEPS) $(ACTION)/spellcheck
 $(ACTION)/spellcheck:
+	@mkdir -p $(TMP_DIR)
+	@cat .vscode/settings.json | jq '.["cSpell.words"]' > $(TMP_DIR)/cspellrc.json
 	-@$(CSPELL) --config .cspellrc.json $(shell $(call get_deps,spellcheck))
 	@$(call done,spellcheck)
 
@@ -169,5 +172,6 @@ CACHE_ENVS += \
 	LOCKFILE_LINT \
 	MAJESTIC \
 	PRETTIER \
+	TMP_DIR \
 	TSC \
 	WEBPACK
