@@ -42,8 +42,9 @@ SPELLCHECK_DEPS := $(call deps,spellcheck,$(shell $(GIT) ls-files 2>$(NULL) | \
 SPELLCHECK_TARGET := $(SPELLCHECK_DEPS) $(ACTION)/spellcheck
 $(ACTION)/spellcheck:
 	@mkdir -p $(TMP_DIR)
-	@cat .vscode/settings.json | jq '.["cSpell.words"]' > $(TMP_DIR)/cspellrc.json
-	-@$(CSPELL) --config .cspellrc.json $(shell $(call get_deps,spellcheck))
+	@node -e "console.log(JSON.stringify({language:'en',version:'0.1',words:require('./.vscode/settings.json')['cSpell.words']}, null, 2))" > \
+		$(TMP_DIR)/cspellrc.json
+	-@$(CSPELL) --config $(TMP_DIR)/cspellrc.json $(shell $(call get_deps,spellcheck))
 	@$(call done,spellcheck)
 
 ACTIONS += lint~spellcheck
