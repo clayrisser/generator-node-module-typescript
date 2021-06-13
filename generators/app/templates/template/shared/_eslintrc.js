@@ -1,7 +1,7 @@
 const fs = require('fs');
 
 const cspellWords = JSON.parse(
-  fs.readFileSync('../../.vscode/settings.json').toString()
+  fs.readFileSync('.vscode/settings.json').toString()
 )['cSpell.words'];
 
 module.exports = {
