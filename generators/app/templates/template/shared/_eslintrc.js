@@ -1,6 +1,8 @@
 const fs = require('fs');
 
-const cspell = JSON.parse(fs.readFileSync('.cspellrc.json').toString());
+const cspellWords = JSON.parse(
+  fs.readFileSync('../../.vscode/settings.json').toString()
+)['cSpell.words'];
 
 module.exports = {
   extends: ['airbnb-typescript/base', 'prettier'],
@@ -50,7 +52,7 @@ module.exports = {
         strings: true,
         identifiers: true,
         lang: 'en_US',
-        skipWords: cspell.words,
+        skipWords: cspellWords,
         skipIfMatch: ['http?://[^s]*', '^[-\\w]+/[-\\w\\.]+$'],
         skipWordIfMatch: [],
         minLength: 3
