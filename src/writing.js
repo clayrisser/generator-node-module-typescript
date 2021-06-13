@@ -6,6 +6,11 @@ export default async function writing(yo) {
     yo.destinationPath('src'),
     yo.context
   );
+  yo.fs.copyTpl(
+    yo.templatePath('template/shared/_vscode/**'),
+    yo.destinationPath('.vscode'),
+    yo.context
+  );
   if (yo.context.bin) {
     yo.fs.copy(
       yo.templatePath('template/shared/bin/bin.js'),
@@ -37,10 +42,6 @@ export default async function writing(yo) {
   yo.fs.copy(
     yo.templatePath('template/shared/_babelrc'),
     yo.destinationPath('.babelrc')
-  );
-  yo.fs.copy(
-    yo.templatePath('template/shared/_cspellrc.json'),
-    yo.destinationPath('.cspellrc.json')
   );
   yo.fs.copyTpl(
     yo.templatePath('template/shared/_gitignore'),
