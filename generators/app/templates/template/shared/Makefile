@@ -1,10 +1,32 @@
+# File: /Makefile
+# Project: nestjs-keycloak
+# File Created: 14-07-2021 11:43:59
+# Author: Clay Risser <email@clayrisser.com>
+# -----
+# Last Modified: 15-07-2021 19:32:55
+# Modified By: Clay Risser <email@clayrisser.com>
+# -----
+# Silicon Hills LLC (c) Copyright 2021
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 export MAKE_CACHE := $(shell pwd)/node_modules/.make
 export PARENT := true
 include blackmagic.mk
 
 BABEL ?= node_modules/.bin/babel
 BABEL_NODE ?= node_modules/.bin/babel-node
-CLOC ?= node_modules/.bin/cloc
+CLOC ?= cloc
 CSPELL ?= node_modules/.bin/cspell
 ESLINT ?= node_modules/.bin/eslint
 JEST ?= node_modules/.bin/jest
@@ -42,7 +64,7 @@ SPELLCHECK_DEPS := $(call deps,spellcheck,$(shell $(GIT) ls-files 2>$(NULL) | \
 SPELLCHECK_TARGET := $(SPELLCHECK_DEPS) $(ACTION)/spellcheck
 $(ACTION)/spellcheck:
 	@mkdir -p $(TMP_DIR)
-	@node -e "console.log(JSON.stringify({language:'en',version:'0.1',words:require('./.vscode/settings.json')['cSpell.words']}, null, 2))" > \
+	@echo '{"language":"en","version":"0.1","words":$(shell cat .vscode/settings.json | $(SED) 's|^\s*//.*||g' | jq ".[\"cSpell.words\"]")}' > \
 		$(TMP_DIR)/cspellrc.json
 	-@$(CSPELL) --config $(TMP_DIR)/cspellrc.json $(shell $(call get_deps,spellcheck))
 	@$(call done,spellcheck)
@@ -62,7 +84,7 @@ TEST_DEPS := $(call deps,test,$(shell $(GIT) ls-files 2>$(NULL) | \
 	grep -E "\.([jt]sx?)$$"))
 TEST_TARGET := $(TEST_DEPS) $(ACTION)/test
 $(ACTION)/test:
-	-@$(JEST) --json --outputFile=node_modules/.tmp/jestTestResults.json --coverage \
+	-@$(JEST) --pass-with-no-tests --json --outputFile=node_modules/.tmp/jestTestResults.json--coverage \
 		--coverageDirectory=node_modules/.tmp/coverage --testResultsProcessor=jest-sonar-reporter \
 		--collectCoverageFrom='$(COLLECT_COVERAGE_FROM)' --findRelatedTests $(shell $(call get_deps,test))
 	@$(call done,test)
@@ -70,17 +92,11 @@ $(ACTION)/test:
 ACTIONS += build~test
 BUILD_DEPS := $(call deps,build,$(shell $(GIT) ls-files 2>$(NULL) | \
 	grep -E "\.([jt]sx?)$$"))
-BUILD_TARGET := $(BUILD_DEPS) $(ACTION)/build
-$(ACTION)/build: es/index.js lib/index.js ;
-	@if [ ! -f $(MAKE_CACHE)/^build ]; then \
-		$(MAKE) -s $(ACTION)/^build; \
-	fi
-	@$(call clear_cache,$(ACTION)/^build)
-es/index.js:
-	@$(MAKE) -s $(ACTION)/^build
+BUILD_TARGET := lib/index.js
 lib/index.js:
-	@$(MAKE) -s $(ACTION)/^build
-$(ACTION)/^build:
+	@$(MAKE) -s _build
+	@rm -rf $(ACTION)/build $(NOFAIL)
+$(ACTION)/build:
 	@$(WEBPACK)
 	@$(BABEL) --env-name umd src -d lib --extensions '.js,.jsx,.ts,.tsx' --source-maps
 	@$(BABEL) --env-name esm src -d es --extensions '.js,.jsx,.ts,.tsx' --source-maps
@@ -101,7 +117,7 @@ inc:
 
 .PHONY: count
 count:
-	@$(CLOC) $(shell $(GIT) ls-files)
+	@LC_ALL=C $(CLOC) $(shell $(GIT) ls-files)
 
 .PHONY: publish +publish
 publish: build

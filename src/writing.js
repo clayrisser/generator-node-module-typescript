@@ -67,6 +67,14 @@ export default async function writing(yo) {
     yo.templatePath('template/shared/tsconfig.app.json'),
     yo.destinationPath('tsconfig.app.json')
   );
+  yo.fs.copy(
+    yo.templatePath('template/shared/default.nix'),
+    yo.destinationPath('default.nix')
+  );
+  yo.fs.copy(
+    yo.templatePath('template/shared/_envrc'),
+    yo.destinationPath('.envrc')
+  );
   yo.fs.copyTpl(
     yo.templatePath('template/shared/tests'),
     yo.destinationPath('tests'),
