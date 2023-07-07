@@ -4,6 +4,8 @@
 
 > yeoman generator for typescript node modules
 
+![](assets/generator-node-module-typescript.png)
+
 Please ★ this repo if you found it useful ★ ★ ★
 
 ## Features
